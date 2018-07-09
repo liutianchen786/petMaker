@@ -1,14 +1,11 @@
 package com.luke.model;
 
 import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.Date;
 
+import org.apache.log4j.Logger;
 import org.springframework.format.annotation.DateTimeFormat;
-
-import com.sun.org.apache.commons.logging.Log;
-import com.sun.org.apache.commons.logging.LogFactory;
 
 /**
  * 
@@ -69,8 +66,9 @@ public class UserChatRecord implements Serializable{
      */
     private String chatstate;
 
-    private Log logger = LogFactory.getLog(UserChatRecord.class);
-    
+    private static Logger logger = Logger.getLogger(UserChatRecord.class);
+
+
 	public Integer getChatId() {
 		return chatId;
 	}

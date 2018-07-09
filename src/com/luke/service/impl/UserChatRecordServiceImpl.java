@@ -14,8 +14,6 @@ import com.luke.model.UserChatRecord;
 import com.luke.service.IUserChatRecordService;
 import com.luke.util.ResultBean;
 import com.luke.util.ResultBean.Result;
-import com.sun.org.apache.commons.logging.Log;
-import com.sun.org.apache.commons.logging.LogFactory;
 
 import common.Logger;
 
@@ -24,8 +22,7 @@ public class UserChatRecordServiceImpl implements IUserChatRecordService{
 
 	@Autowired
 	private UserChatRecordMapper mapper;
-	
-	
+	private static Logger logger = Logger.getLogger(UserChatRecordServiceImpl.class);	
 	@Override
 	public ResultBean insert(UserChatRecord ucRecord) {
 		ResultBean bean = null;
@@ -48,8 +45,7 @@ public class UserChatRecordServiceImpl implements IUserChatRecordService{
 			try {
 				String content = URLDecoder.decode(map.get("content").toString(),"utf-8");
 				map.put("content", content);
-				Log log = LogFactory.getLog(UserChatRecordServiceImpl.class);
-				log.warn(content);
+				logger.warn(content);
 			} catch (UnsupportedEncodingException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

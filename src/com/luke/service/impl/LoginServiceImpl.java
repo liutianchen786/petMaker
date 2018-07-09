@@ -7,8 +7,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import net.sf.json.JSONObject;
-
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,8 +17,8 @@ import com.luke.model.User;
 import com.luke.service.ILoginService;
 import com.luke.util.AesCbcUtil;
 import com.luke.util.HttpRequest;
-import com.sun.org.apache.commons.logging.Log;
-import com.sun.org.apache.commons.logging.LogFactory;
+
+import net.sf.json.JSONObject;
 
 
 @Service("loginService")
@@ -29,7 +28,7 @@ public class LoginServiceImpl implements ILoginService{
 
 	@Autowired
 	private UserTaskMapper taskMapper;
-	private Log Logger = LogFactory.getLog(LoginServiceImpl.class);
+    private static Logger logger = Logger.getLogger(LoginServiceImpl.class);
 	@Override
 	public Map<String,Object> userLogin(String encryptedData, String iv, String code, User user) {
 		String sex = null;
@@ -151,7 +150,7 @@ public class LoginServiceImpl implements ILoginService{
 					}
 					mapper.updateByPrimaryKeySelective(userModel);
 					map.put("userInfo", userInfo);
-					Logger.info("该用户已存在！");
+					logger.info("该用户已存在！");
 				}
 
 				return map;

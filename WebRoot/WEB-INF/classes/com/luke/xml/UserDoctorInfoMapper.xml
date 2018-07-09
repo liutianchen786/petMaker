@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.luke.dao.UserDoctorInfoMapper" >
+
+    <resultMap id="BaseResultMap" type="com.luke.model.UserDoctorInfo" >
+        <id column="userDtcId" property="userDtcId" jdbcType="VARCHAR" />
+        <result column="unionId" property="unionId" jdbcType="VARCHAR" />
+        <result column="dtcName" property="dtcName" jdbcType="VARCHAR" />
+        <result column="dtcAvaImage" property="dtcAvaImage" jdbcType="VARCHAR" />
+        <result column="dtcPosition" property="dtcPosition" jdbcType="VARCHAR" />
+        <result column="dtcHospital" property="dtcHospital" jdbcType="VARCHAR" />
+        <result column="dtcSpeciality" property="dtcSpeciality" jdbcType="LONGVARCHAR" />
+        <result column="dtcPrice" property="dtcPrice" jdbcType="CHAR" />
+        <result column="userAmount" property="userAmount" jdbcType="INTEGER" />
+        <result column="userLikeAmount" property="userLikeAmount" jdbcType="INTEGER" />
+        <result column="opreationId" property="opreationId" jdbcType="VARCHAR" />
+        <result column="opreationTime" property="opreationTime" jdbcType="TIMESTAMP" />
+        <result column="ZFflag" property="zfflag" jdbcType="CHAR" />
+        <result column="avatarUrl" property="avatarUrl" jdbcType="VARCHAR" />
+    </resultMap>
+
+    <sql id="Base_Column_List" >
+        userDtcId, unionId, dtcName, dtcAvaImage, dtcPosition, dtcHospital, dtcSpeciality, 
+        (case dtcPrice
+        when '0'
+        then '免费'
+        else 'vip'
+        end) dtcPrice, userAmount, userLikeAmount, opreationId, opreationTime, ZFflag
+    </sql>
+
+    <select id="queryDocInfo" resultMap="BaseResultMap" parameterType="java.lang.String" >
+	         SELECT
+				udi.userDtcId,
+				udi.unionId,
+				udi.dtcName,
+				udi.dtcAvaImage,
+				udi.dtcPosition,
+				udi.dtcHospital,
+				udi.dtcSpeciality,
+				( CASE udi.dtcPrice WHEN '0' THEN '免费' ELSE 'vip' END ) dtcPrice,
+				udi.userAmount,
+				udi.userLikeAmount,
+				udi.opreationId,
+				udi.opreationTime,
+				GROUP_CONCAT(du.avatarUrl)  avatarUrl
+			FROM
+				user_doctor_info udi
+			left join
+				(select 
+				d.userDtcId,u.avatarUrl
+				from
+				doc_IRogation_Record d,user u
+				where
+				d.userUnionId = u.unionId
+				group by
+				u.avatarUrl
+				limit 1,4) du
+			on 
+				udi.userDtcId = du.userDtcId
+			WHERE
+				udi.zfflag = 0
+			GROUP BY 
+				udi.userDtcId
+    </select>
+	<update id="updateDocInfo">
+		update 
+		      user_doctor_info
+		set
+			  ${type} =${type}+1
+		where
+			userDtcId = #{userDtcId}
+	</update>
+	<insert id="insertRecord">
+		insert into 
+				doc_IRogation_Record
+					(userDtcId,userUnionId,zfflag)
+				values
+					(#{userDtcId},#{userUnionId},0)
+	</insert>
+
+   
+</mapper>

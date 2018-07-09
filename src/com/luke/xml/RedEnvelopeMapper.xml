@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.luke.dao.RedEnvelopeMapper" >
+
+    <resultMap id="BaseResultMap" type="com.luke.model.RedEnvelope" >
+        <id column="eid" property="eid" jdbcType="INTEGER" />
+        <result column="openid" property="openid" jdbcType="VARCHAR" />
+        <result column="money" property="money" jdbcType="INTEGER" />
+        <result column="createTime" property="createtime" jdbcType="DATE" />
+        <result column="estate" property="estate" jdbcType="TINYINT" />
+        <result column="getTime" property="gettime" jdbcType="DATE" />
+        <result column="getUid" property="getuid" jdbcType="INTEGER" />
+        <result column="timeOut" property="timeout" jdbcType="DATE" />
+        <result column="sentid" property="sentid" jdbcType="INTEGER" />
+        <result column="sentEnvelope" property="sentenvelope" jdbcType="INTEGER" />
+        <result column="getEnvelope" property="getenvelope" jdbcType="INTEGER" />
+        <result column="getMoney" property="getmoney" jdbcType="INTEGER" />
+        <result column="sentMoney" property="sentmoney" jdbcType="INTEGER" />
+        <result column="state" property="state" jdbcType="INTEGER" />
+        <result column="state1" property="state1" jdbcType="INTEGER" />
+    </resultMap>
+
+    <sql id="Base_Column_List" >
+        eid, openid, money, createTime, estate, getTime, getUid, timeOut, sentid, sentEnvelope, 
+        getEnvelope, getMoney, sentMoney, state, state1
+    </sql>
+
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+        select 
+        <include refid="Base_Column_List" />
+        from red-envelope
+        where eid = #{eid,jdbcType=INTEGER}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+        delete from red-envelope
+        where eid = #{eid,jdbcType=INTEGER}
+    </delete>
+
+    <insert id="insert" parameterType="com.luke.model.RedEnvelope" >
+        insert into red-envelope (eid, openid, money, 
+            createTime, estate, getTime, 
+            getUid, timeOut, sentid, 
+            sentEnvelope, getEnvelope, getMoney, 
+            sentMoney, state, state1
+            )
+        values (#{eid,jdbcType=INTEGER}, #{openid,jdbcType=VARCHAR}, #{money,jdbcType=INTEGER}, 
+            #{createtime,jdbcType=DATE}, #{estate,jdbcType=TINYINT}, #{gettime,jdbcType=DATE}, 
+            #{getuid,jdbcType=INTEGER}, #{timeout,jdbcType=DATE}, #{sentid,jdbcType=INTEGER}, 
+            #{sentenvelope,jdbcType=INTEGER}, #{getenvelope,jdbcType=INTEGER}, #{getmoney,jdbcType=INTEGER}, 
+            #{sentmoney,jdbcType=INTEGER}, #{state,jdbcType=INTEGER}, #{state1,jdbcType=INTEGER}
+            )
+    </insert>
+
+    <insert id="insertSelective" parameterType="com.luke.model.RedEnvelope" >
+        insert into red-envelope
+        <trim prefix="(" suffix=")" suffixOverrides="," >
+            <if test="eid != null" >
+                eid,
+            </if>
+            <if test="openid != null" >
+                openid,
+            </if>
+            <if test="money != null" >
+                money,
+            </if>
+            <if test="createtime != null" >
+                createTime,
+            </if>
+            <if test="estate != null" >
+                estate,
+            </if>
+            <if test="gettime != null" >
+                getTime,
+            </if>
+            <if test="getuid != null" >
+                getUid,
+            </if>
+            <if test="timeout != null" >
+                timeOut,
+            </if>
+            <if test="sentid != null" >
+                sentid,
+            </if>
+            <if test="sentenvelope != null" >
+                sentEnvelope,
+            </if>
+            <if test="getenvelope != null" >
+                getEnvelope,
+            </if>
+            <if test="getmoney != null" >
+                getMoney,
+            </if>
+            <if test="sentmoney != null" >
+                sentMoney,
+            </if>
+            <if test="state != null" >
+                state,
+            </if>
+            <if test="state1 != null" >
+                state1,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides="," >
+            <if test="eid != null" >
+                #{eid,jdbcType=INTEGER},
+            </if>
+            <if test="openid != null" >
+                #{openid,jdbcType=VARCHAR},
+            </if>
+            <if test="money != null" >
+                #{money,jdbcType=INTEGER},
+            </if>
+            <if test="createtime != null" >
+                #{createtime,jdbcType=DATE},
+            </if>
+            <if test="estate != null" >
+                #{estate,jdbcType=TINYINT},
+            </if>
+            <if test="gettime != null" >
+                #{gettime,jdbcType=DATE},
+            </if>
+            <if test="getuid != null" >
+                #{getuid,jdbcType=INTEGER},
+            </if>
+            <if test="timeout != null" >
+                #{timeout,jdbcType=DATE},
+            </if>
+            <if test="sentid != null" >
+                #{sentid,jdbcType=INTEGER},
+            </if>
+            <if test="sentenvelope != null" >
+                #{sentenvelope,jdbcType=INTEGER},
+            </if>
+            <if test="getenvelope != null" >
+                #{getenvelope,jdbcType=INTEGER},
+            </if>
+            <if test="getmoney != null" >
+                #{getmoney,jdbcType=INTEGER},
+            </if>
+            <if test="sentmoney != null" >
+                #{sentmoney,jdbcType=INTEGER},
+            </if>
+            <if test="state != null" >
+                #{state,jdbcType=INTEGER},
+            </if>
+            <if test="state1 != null" >
+                #{state1,jdbcType=INTEGER},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.luke.model.RedEnvelope" >
+        update red-envelope
+        <set >
+            <if test="openid != null" >
+                openid = #{openid,jdbcType=VARCHAR},
+            </if>
+            <if test="money != null" >
+                money = #{money,jdbcType=INTEGER},
+            </if>
+            <if test="createtime != null" >
+                createTime = #{createtime,jdbcType=DATE},
+            </if>
+            <if test="estate != null" >
+                estate = #{estate,jdbcType=TINYINT},
+            </if>
+            <if test="gettime != null" >
+                getTime = #{gettime,jdbcType=DATE},
+            </if>
+            <if test="getuid != null" >
+                getUid = #{getuid,jdbcType=INTEGER},
+            </if>
+            <if test="timeout != null" >
+                timeOut = #{timeout,jdbcType=DATE},
+            </if>
+            <if test="sentid != null" >
+                sentid = #{sentid,jdbcType=INTEGER},
+            </if>
+            <if test="sentenvelope != null" >
+                sentEnvelope = #{sentenvelope,jdbcType=INTEGER},
+            </if>
+            <if test="getenvelope != null" >
+                getEnvelope = #{getenvelope,jdbcType=INTEGER},
+            </if>
+            <if test="getmoney != null" >
+                getMoney = #{getmoney,jdbcType=INTEGER},
+            </if>
+            <if test="sentmoney != null" >
+                sentMoney = #{sentmoney,jdbcType=INTEGER},
+            </if>
+            <if test="state != null" >
+                state = #{state,jdbcType=INTEGER},
+            </if>
+            <if test="state1 != null" >
+                state1 = #{state1,jdbcType=INTEGER},
+            </if>
+        </set>
+        where eid = #{eid,jdbcType=INTEGER}
+    </update>
+
+    <update id="updateByPrimaryKey" parameterType="com.luke.model.RedEnvelope" >
+        update red-envelope
+        set openid = #{openid,jdbcType=VARCHAR},
+            money = #{money,jdbcType=INTEGER},
+            createTime = #{createtime,jdbcType=DATE},
+            estate = #{estate,jdbcType=TINYINT},
+            getTime = #{gettime,jdbcType=DATE},
+            getUid = #{getuid,jdbcType=INTEGER},
+            timeOut = #{timeout,jdbcType=DATE},
+            sentid = #{sentid,jdbcType=INTEGER},
+            sentEnvelope = #{sentenvelope,jdbcType=INTEGER},
+            getEnvelope = #{getenvelope,jdbcType=INTEGER},
+            getMoney = #{getmoney,jdbcType=INTEGER},
+            sentMoney = #{sentmoney,jdbcType=INTEGER},
+            state = #{state,jdbcType=INTEGER},
+            state1 = #{state1,jdbcType=INTEGER}
+        where eid = #{eid,jdbcType=INTEGER}
+    </update>
+</mapper>

@@ -1,0 +1,520 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.luke.dao.MessageMapper" >
+
+    <resultMap id="BaseResultMap" type="com.luke.model.Message" >
+        <id column="messid" property="messid" jdbcType="INTEGER" />
+        <result column="unionid" property="unionid" jdbcType="VARCHAR" />
+        <result column="messimage" property="messimage" jdbcType="LONGVARCHAR" />
+        <result column="messDesc" property="messdesc" jdbcType="VARCHAR" />
+        <result column="messTitle" property="messtitle" jdbcType="VARCHAR" />
+        <result column="circleId" property="circleid" jdbcType="INTEGER" />
+        <result column="messTime" property="messtime" jdbcType="TIMESTAMP" />
+        <result column="messLocation" property="messlocation" jdbcType="VARCHAR" />
+        <result column="printTime" property="printtime" jdbcType="TIMESTAMP" />
+        <result column="ifclick" property="ifclick" jdbcType="TINYINT" />
+        <result column="clickcount" property="clickcount" jdbcType="INTEGER" />
+        <result column="commenetscount" property="commenetscount" jdbcType="INTEGER" />
+        <result column="haveReadcount" property="havereadcount" jdbcType="TINYINT" />
+        <result column="messType" property="messtype" jdbcType="VARCHAR" />
+        <result column="messFrom" property="messfrom" jdbcType="VARCHAR" />
+        <result column="messTo" property="messto" jdbcType="VARCHAR" />
+        <result column="messState" property="messState" jdbcType="INTEGER" />
+        <result column="ZFflag" property="zfflag" jdbcType="CHAR" />
+        <result column="operationid" property="operationid" jdbcType="INTEGER" />
+    	<result column="operationtime" property="operationtime" jdbcType="TIMESTAMP" />
+    </resultMap>
+
+    <sql id="Base_Column_List" >
+        messid, unionid,messtitle,circleid, messimage, messDesc, messTime, messLocation, printTime, ifclick, 
+        clickcount, commenetscount, haveReadcount, messType, messFrom, 
+        messTo, state,ZFflag, operationid, operationtime
+    </sql>
+
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+        select 
+        <include refid="Base_Column_List" />
+        from message
+        where messid = #{messid,jdbcType=INTEGER}
+    </select>
+
+	<!-- 查询出所有消息，按messid倒叙 -->
+	<select id="selectAll" resultType="Map" parameterType="java.lang.Object">
+ 		SELECT
+			m.messid,
+			m.circleId,
+			m.messimage,
+			m.messDesc,
+			m.unionId,
+			(case 
+					when 
+							timestampdiff(HOUR,m.messtime,SYSDATE()) BETWEEN 1 and 24
+					then 
+							concat(timestampdiff(HOUR,m.messtime,SYSDATE()),"小时前")
+					when
+							timestampdiff(MINUTE,m.messtime,SYSDATE()) &lt; 60
+					then
+							concat(timestampdiff(MINUTE,m.messtime,SYSDATE()),"分钟前")
+					else
+							date_format(m.messtime,'%c月%e日')
+					end) messTime,
+			m.messTitle,
+			ifnull(m.messLocation,"未知") messLocation,
+			if(m.clickcount>=10000,concat(truncate(m.clickcount/10000,1),"w"),m.clickcount) clickcount,
+			if(m.haveReadcount>=10000,concat(truncate(m.haveReadcount/10000,1),"w"),m.haveReadcount) haveReadcount,
+			if(m.commenetscount>=10000,concat(truncate(m.commenetscount/10000,1),"w"),m.commenetscount) commenetscount,
+			m.messTo,
+			m.messState,
+			m.ZFflag,
+			u.avatarUrl,
+			u.nickname,
+			u.state,
+			ifnull(cl.ifclick,0) ifclick
+			FROM
+			message  m
+			LEFT JOIN user  u ON  m.unionid = u.unionId
+			LEFT JOIN clicklike cl  ON   cl.mid = m.messid
+			and
+			cl.unionid = #{unionId}
+			WHERE
+			m.ZFflag = 0
+			<if test="messState==3">
+			and m.messState = 3
+			</if>
+			<!-- 查找圈子某个圈子所有的话题 -->
+			<if test="circleId!=-1">
+			and
+				m.circleId = #{circleId}
+			and
+				m.messState BETWEEN 1 and 2 
+			</if>
+			<!-- 查找广播内容 -->
+			<if test="circleId==-1 and masterUnionId==null and messid==-1 and messState ==0 ">
+			and
+				m.messState in (0,2)
+			</if>
+			<!-- 查找某一条消息 -->
+ 			<if test="messid!=-1">
+			AND m.messid =  #{messid,jdbcType=INTEGER}
+			</if>
+			<!-- 查找该用户所有的话题 -->   
+			<if test="masterUnionId!=null">
+			and
+				m.unionid =#{masterUnionId}
+			and
+				m.messState BETWEEN 1 and 2 
+			</if>
+ 			order by m.messTime desc
+ 			<if test="pageNum!=-1">
+ 			limit #{pageNum},#{pageNum2}
+ 			</if>
+	</select>
+	<!-- 圈子详细参数 unionId:此人的unionid 用来查询是否对圈子下每条信息点赞的情况
+		         circleId:查询圈子下的信息 		
+		用户主页详细参数 unionId:此人的unionid 用来查询是否对该主人每条信息点赞的情况
+				masterUnionId:只查主人发布的信息
+	 -->
+	<select id="selectCircleOrCenter" resultType="Map">
+			SELECT
+					m.messid,
+					u.nickname,
+					m.unionId,
+					u.avatarUrl,
+					m.circleId,
+					m.messimage,
+					m.unionid,
+					m.messDesc,
+					DATE_FORMAT(m.messTime,'%Y-%m-%d') messTime,
+					m.messTitle,
+					m.messLocation,
+					m.clickcount,
+					if(m.haveReadcount>=10000,concat(truncate(m.haveReadcount/10000,1),"w"),m.haveReadcount) haveReadcount,
+					if(m.commenetscount>=10000,concat(truncate(m.commenetscount/10000,1),"w"),m.commenetscount) commenetscount,
+					m.messState,
+					ifnull(cl.ifclick,0) ifclick
+			FROM
+					message  m
+			left join
+					user u
+			on
+					m.unionid  = u.unionId
+			left join
+					clicklike cl
+			on
+					cl.mid = m.messid
+			and
+					cl.unionid = #{unionId}
+			WHERE
+				m.ZFflag=0
+			<if test="circleId!=null">
+			and
+				m.circleId = #{circleId}
+			</if>
+			<if test="masterUnionId!=null">
+			and
+				m.unionid =#{masterUnionId}
+			</if>
+	</select>
+	
+	<!-- 根据messid查出消息 -->
+	<select id="selectByKey" resultType="Map">
+		select m.messid,u.unionId,u.nickname,u.avatarUrl,m.messDesc,m.messimage,m.messLocation,m.messTime 
+		from message m,user u where m.unionid = u.unionId and messid = #{messid,jdbcType=INTEGER}
+	</select>	
+	
+	
+	
+	<select id="selectByIfclick" resultType="Map">
+		select ifclick from message order by messid desc
+	</select>
+	
+	<!-- 查询我发表的 -->
+	<select id="selectPublished" resultType="Map">
+		select m.messid,m.messTitle,m.messTime,m.messDesc,m.messimage,m.messState,count(c.pid) count from 
+		message m 
+		LEFT JOIN comments c
+		on m.messid = c.mid and c.pid = 0
+		where m.unionid = #{unionid,jdbcType=VARCHAR}
+		and m.circleId is not null
+		and m.messState in (1,2)
+		and m.ZFflag = 0
+		group by m.messid
+	</select>
+	
+	<!-- 删除消息/update设置zfflag为1
+	<update id="updateZfflag" parameterType="java.lang.Integer">
+		update message set zfflag = 1 where messid = #{messid,jdbcType=INTEGER}
+	</update> -->
+
+	<!-- 热门话题 -->
+	<select id="selectHot" resultType="map">
+		<!--  select 
+			m.messid,
+			m.circleId,
+			ci.cname,
+			m.messDesc,
+			m.messimage,
+			m.messDesc,
+			m.messTime,
+			m.messTitle,
+			ml.clickcount,
+			c.commentcount
+					from (((message m
+					LEFT JOIN 
+			(select messid mid,clickcount from message ORDER BY clickcount desc limit 1) 
+					ml on m.messid = ml.mid)
+					LEFT JOIN 
+			(select mid,count(1) commentcount from comments 
+					GROUP BY mid ORDER BY commentcount desc) 
+			c on m.messid = c.mid)
+					LEFT JOIN 
+			circle ci on ci.circleid = m.circleId)
+		where m.circleId is not null
+		GROUP BY m.circleId-->
+			SELECT
+					m.messid,
+					m.unionid,
+					m.circleId,
+					ci.cname,
+					m.messimage,
+					m.messdesc,
+					(case 
+						when 
+								timestampdiff(HOUR,m.messtime,SYSDATE()) BETWEEN 1 and 24
+						then 
+								concat(timestampdiff(HOUR,m.messtime,SYSDATE()),"小时前")
+						when
+								timestampdiff(MINUTE,m.messtime,SYSDATE()) &lt; 60
+						then
+								concat(timestampdiff(MINUTE,m.messtime,SYSDATE()),"分钟前")
+						else
+								date_format(m.messtime,'%c月%e日')
+					end) messTime,
+					m.messtitle,
+					m.messlocation,
+					m.clickcount,
+					m.commenetscount,
+					m.haveReadcount,
+					m.messState,
+					m.ZFflag,
+					ifnull(c.ifclick,0)  ifclick
+					FROM
+							message AS m
+					LEFT JOIN 
+							clicklike AS c 
+					ON 
+							m.messid = c.mid
+					and
+							c.unionid = #{unionId}
+					LEFT JOIN
+							circle ci
+					on
+							ci.circleid= m.circleid
+					WHERE
+					m.ZFflag = 0 AND
+					m.circleId BETWEEN 1 AND 12 AND
+					m.messState BETWEEN 0 AND 2
+					GROUP BY
+					m.circleId
+					HAVING Max(m.clickcount*0.3 + m.commenetscount*0.5+m.haveReadcount*0.2) 
+	</select>
+	<!-- 最新话题 -->
+	<select id="selectNews" resultType="Map">
+		SELECT
+					m.messid,
+					m.unionid,
+					u.avatarUrl,
+					u.nickname,
+					m.circleId,
+					c.cname,
+					u.state,
+					m.messimage,
+					m.messDesc,
+					m.messTime,
+					m.messTitle,
+					m.messLocation,
+					m.printTime,
+					m.clickcount,
+					if(m.haveReadcount>=10000,concat(truncate(m.haveReadcount/10000,1),"w"),m.haveReadcount) haveReadcount,
+					if(m.commenetscount>=10000,concat(truncate(m.commenetscount/10000,1),"w"),m.commenetscount) commenetscount,
+					m.messState,
+					m.ZFflag
+		FROM
+					message  m
+		LEFT	JOIN
+					circle  c
+		on
+					m.circleId=c.circleid
+		left join
+					user u
+		on
+					u.unionid = m.unionid
+		where
+					m.ZFflag=0
+		and
+					TIMESTAMPDIFF(hour,m.messTime,SYSDATE()) BETWEEN 0 and 12 
+		and
+					m.messState BETWEEN 1 and 2
+		and
+				exists 
+				(select 
+						ucr.circleId
+				from
+						user_circlelike_record ucr,
+						user us
+				where
+						us.unionId = ucr.unionid
+				and
+						ucr.islike = 1
+				and
+						us.unionId= #{unionId}
+				and
+						ucr.circleid = m.circleId)
+	</select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    	update 
+    			message m
+    	left join
+    			comments c
+    	on
+    			c.mid =m.messid 
+    	set
+    			m.ZFflag =1,
+    			c.ZFflag =1
+    	where
+    			m.messid = #{messid,jdbcType=INTEGER}
+  
+    </delete>
+
+    <insert id="insert" parameterType="com.luke.model.Message" >
+        insert into message (messid, unionid, circleId, 
+            messimage, messDesc, messTime, 
+            messTitle, messLocation, printTime, 
+            ifclick, clickcount, commenetscount, 
+            haveReadcount, messType, messFrom, 
+            messTo, messState, ZFflag, 
+            operationid, operationtime)
+        values (#{messid,jdbcType=INTEGER}, #{unionid,jdbcType=VARCHAR}, #{circleid,jdbcType=INTEGER}, 
+            #{messimage,jdbcType=LONGVARCHAR}, #{messdesc,jdbcType=VARCHAR}, #{messtime,jdbcType=TIMESTAMP}, 
+            #{messtitle,jdbcType=VARCHAR}, #{messlocation,jdbcType=VARCHAR}, #{printtime,jdbcType=TIMESTAMP}, 
+            #{ifclick,jdbcType=TINYINT}, #{clickcount,jdbcType=INTEGER}, #{commenetscount,jdbcType=INTEGER}, 
+            #{havereadcount,jdbcType=TINYINT}, #{messtype,jdbcType=VARCHAR}, #{messfrom,jdbcType=VARCHAR}, 
+            #{messto,jdbcType=VARCHAR}, #{messState,jdbcType=INTEGER}, #{zfflag,jdbcType=CHAR}, 
+            #{operationid,jdbcType=INTEGER}, #{operationtime,jdbcType=TIMESTAMP})
+    </insert>
+
+    <insert id="insertSelective" parameterType="com.luke.model.Message" >
+        insert into message
+        <trim prefix="(" suffix=")" suffixOverrides="," >
+            <if test="messid != null" >
+                messid,
+            </if>
+            <if test="unionid != null" >
+                unionid,
+            </if>
+            <if test="circleid != null" >
+                circleId,
+            </if>
+            <if test="messimage != null" >
+                messimage,
+            </if>
+            <if test="messdesc != null" >
+                messDesc,
+            </if>
+            <if test="messtime != null" >
+                messTime,
+            </if>
+            <if test="messtitle != null" >
+                messTitle,
+            </if>
+            <if test="messlocation != null" >
+                messLocation,
+            </if>
+            <if test="printtime != null" >
+                printTime,
+            </if>
+            <if test="ifclick != null" >
+                ifclick,
+            </if>
+            <if test="clickcount != null" >
+                clickcount,
+            </if>
+            <if test="commenetscount != null" >
+                commenetscount,
+            </if>
+            <if test="havereadcount != null" >
+                haveReadcount,
+            </if>
+            <if test="messtype != null" >
+                messType,
+            </if>
+            <if test="messfrom != null" >
+                messFrom,
+            </if>
+            <if test="messto != null" >
+                messTo,
+            </if>
+            <if test="messState != null" >
+                messState,
+            </if>
+            <if test="zfflag != null" >
+                ZFflag,
+            </if>
+            <if test="operationid != null" >
+                operationid,
+            </if>
+            <if test="operationtime != null" >
+                operationtime,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides="," >
+            <if test="messid != null" >
+                #{messid,jdbcType=INTEGER},
+            </if>
+            <if test="unionid != null" >
+                #{unionid,jdbcType=VARCHAR},
+            </if>
+            <if test="circleid != null" >
+                #{circleid,jdbcType=INTEGER},
+            </if>
+            <if test="messimage != null" >
+                #{messimage,jdbcType=LONGVARCHAR},
+            </if>
+            <if test="messdesc != null" >
+                #{messdesc,jdbcType=VARCHAR},
+            </if>
+            <if test="messtime != null" >
+                #{messtime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="messtitle != null" >
+                #{messtitle,jdbcType=VARCHAR},
+            </if>
+            <if test="messlocation != null" >
+                #{messlocation,jdbcType=VARCHAR},
+            </if>
+            <if test="printtime != null" >
+                #{printtime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="ifclick != null" >
+                #{ifclick,jdbcType=TINYINT},
+            </if>
+            <if test="clickcount != null" >
+                #{clickcount,jdbcType=INTEGER},
+            </if>
+            <if test="commenetscount != null" >
+                #{commenetscount,jdbcType=INTEGER},
+            </if>
+            <if test="havereadcount != null" >
+                #{havereadcount,jdbcType=TINYINT},
+            </if>
+            <if test="messtype != null" >
+                #{messtype,jdbcType=VARCHAR},
+            </if>
+            <if test="messfrom != null" >
+                #{messfrom,jdbcType=VARCHAR},
+            </if>
+            <if test="messto != null" >
+                #{messto,jdbcType=VARCHAR},
+            </if>
+            <if test="messState != null" >
+                #{messState},
+            </if>
+            <if test="zfflag != null" >
+                #{zfflag,jdbcType=CHAR},
+            </if>
+            <if test="operationid != null" >
+                #{operationid,jdbcType=INTEGER},
+            </if>
+            <if test="operationtime != null" >
+                #{operationtime,jdbcType=TIMESTAMP},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateCount" parameterType="com.luke.model.Message" >
+        update message
+        <set >
+            <if test="clickcount != null" >
+                clickcount =clickcount + #{clickcount,jdbcType=INTEGER},
+            </if>
+            <if test="commenetscount != null" >
+                commenetscount =commenetscount+ #{commenetscount,jdbcType=INTEGER},
+            </if>
+            <if test="havereadcount != null" >
+                haveReadcount =haveReadcount+ #{havereadcount,jdbcType=TINYINT},
+            </if>
+        </set>
+        where messid = #{messid,jdbcType=INTEGER}
+    </update>
+	<select id="watchedHistory" resultType="Map">
+		select 
+				m.messid,
+				(case 
+					when 
+							timestampdiff(HOUR,m.messtime,SYSDATE()) BETWEEN 1 and 24
+					then 
+							concat(timestampdiff(HOUR,m.messtime,SYSDATE()),"小时前")
+					when
+							timestampdiff(MINUTE,m.messtime,SYSDATE()) &lt; 60
+					then
+							concat(timestampdiff(MINUTE,m.messtime,SYSDATE()),"分钟前")
+					else
+							date_format(m.messtime,'%c月%e日')
+					end) messTime,
+				m.messTitle,
+				m.messimage,
+				c.circleid,
+				c.cname,
+				c.circleimage
+		from
+			message m
+		left join 
+			circle c
+		on m.circleid = c.circleid
+		where
+		m.zfflag = 0
+		and
+		m.messid in (${browseData})
+	</select>
+</mapper>

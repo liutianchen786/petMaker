@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.luke.dao.RegionMapper" >
+
+    <resultMap id="BaseResultMap" type="com.luke.model.Region" >
+        <id column="regionid" property="regionid" jdbcType="INTEGER" />
+        <result column="unionid" property="unionid" jdbcType="VARCHAR" />
+        <result column="address" property="address" jdbcType="VARCHAR" />
+        <result column="longitude" property="longitude" jdbcType="DOUBLE" />
+        <result column="latitude" property="latitude" jdbcType="DOUBLE" />
+        <result column="regionCode" property="regioncode" jdbcType="INTEGER" />
+        <result column="SuperiorAreaCode" property="superiorareacode" jdbcType="INTEGER" />
+        <result column="regionReferred" property="regionreferred" jdbcType="VARCHAR" />
+        <result column="regionLevel" property="regionlevel" jdbcType="VARCHAR" />
+        <result column="operationid" property="operationid" jdbcType="VARCHAR" />
+        <result column="avaCirImage" property="avaCirImage" jdbcType="VARCHAR" />
+        <result column="operationTime" property="operationtime" jdbcType="TIMESTAMP" />
+        <result column="ZFflag" property="zfflag" jdbcType="CHAR" />
+    </resultMap>
+
+    <sql id="Base_Column_List" >
+        regionid, unionid, address, longitude, latitude, regionCode, SuperiorAreaCode, regionReferred, 
+        regionLevel, operationid, operationTime, ZFflag
+    </sql>
+	
+	<!-- 查询附近最近的十个用户 -->
+	<select id="selectDistance" resultType="map">
+		select r.regionid id,u.avatarUrl,u.nickname,r.unionid,r.address,r.longitude,r.latitude,r.avaCirImage from region r,user u
+	<!-- 	,(select unionid,max(operationTime) time from region group by unionid) re
+		where re.time = r.operationTime -->
+		where r.unionid = u.unionid
+		and latitude &gt; #{latitude,jdbcType=DOUBLE} - #{scale} 
+		and latitude &lt;  #{latitude,jdbcType=DOUBLE} + #{scale}
+		and longitude &gt; #{longitude,jdbcType=DOUBLE} - #{scale}
+		and longitude &lt;  #{longitude,jdbcType=DOUBLE} + #{scale}
+		order by id,r.unionid desc<!-- ACOS(SIN(( #{latitude,jdbcType=DOUBLE} * 3.1415) / 180.0 ) *SIN((latitude * 3.1415) / 180.0 ) +
+		COS(( #{latitude,jdbcType=DOUBLE} * 3.1415) / 180.0 ) * COS((latitude * 3.1415) / 180.0 ) *COS((#{longitude,jdbcType=DOUBLE} * 3.1415) / 180.0 - 
+		(longitude * 3.1415) / 180.0 ))  * 6380.0 asc, -->
+	</select>
+
+	<!-- 查询用户最新的位置信息 -->
+	<select id="selectNews" resultType="map">
+		SELECT r.regionid,u.avatarUrl,u.nickname,r.unionid,r.address,r.longitude,r.latitude from region r,
+		(SELECT regionid,unionid,MAX(operationTime) time from region GROUP BY unionid) re,
+		user u 
+		where r.unionid = re.unionid and r.operationTime = re.time and r.unionid = u.unionId;
+	</select>
+
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+        select 
+        <include refid="Base_Column_List" />
+        from region
+        where regionid = #{regionid,jdbcType=INTEGER}
+    </select>
+    
+    <select id="selectByUnionid"  resultType="java.lang.Integer">
+        select count(unionid) from region where unionid = #{unionid,jdbcType=INTEGER}
+    </select>
+	
+	<select id="selectAddress"  resultType="java.lang.String">
+        select address
+        from region
+        where unionid = #{unionid,jdbcType=VARCHAR}
+    </select>
+	
+	<!-- 根据unionID更新位置信息 -->
+	<update id="updateByUnionidSelective" parameterType="com.luke.model.Region"  >
+        update region
+        <set >
+            <if test="address != null" >
+                address = #{address,jdbcType=VARCHAR},
+            </if>
+            <if test="longitude != null" >
+                longitude = #{longitude,jdbcType=DOUBLE},
+            </if>
+            <if test="latitude != null" >
+                latitude = #{latitude,jdbcType=DOUBLE},
+            </if>
+            <if test="regioncode != null" >
+                regionCode = #{regioncode,jdbcType=INTEGER},
+            </if>
+            <if test="superiorareacode != null" >
+                SuperiorAreaCode = #{superiorareacode,jdbcType=INTEGER},
+            </if>
+            <if test="regionreferred != null" >
+                regionReferred = #{regionreferred,jdbcType=VARCHAR},
+            </if>
+            <if test="regionlevel != null" >
+                regionLevel = #{regionlevel,jdbcType=VARCHAR},
+            </if>
+            
+        </set>
+        where unionid = #{unionid,jdbcType=VARCHAR}
+    </update>
+
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+        delete from region
+        where regionid = #{regionid,jdbcType=INTEGER}
+    </delete>
+
+    <insert id="insert" parameterType="com.luke.model.Region" >
+        insert into region (regionid, unionid, address, 
+            longitude, latitude, regionCode, 
+            SuperiorAreaCode, regionReferred, regionLevel, 
+             operationid, operationTime,avaCirImage,
+            )
+        values (#{regionid,jdbcType=INTEGER}, #{unionid,jdbcType=VARCHAR}, #{address,jdbcType=VARCHAR}, 
+            #{longitude,jdbcType=DOUBLE}, #{latitude,jdbcType=DOUBLE}, #{regioncode,jdbcType=INTEGER}, 
+            #{superiorareacode,jdbcType=INTEGER}, #{regionreferred,jdbcType=VARCHAR}, #{regionlevel,jdbcType=VARCHAR}, 
+            #{operationid,jdbcType=VARCHAR}, #{operationtime,jdbcType=TIMESTAMP},  #{avaCirImage}, 
+            )
+    </insert>
+
+    <insert id="insertSelective" parameterType="com.luke.model.Region" >
+        insert into region
+        <trim prefix="(" suffix=")" suffixOverrides="," >
+            <if test="regionid != null" >
+                regionid,
+            </if>
+            <if test="unionid != null" >
+                unionid,
+            </if>
+            <if test="address != null" >
+                address,
+            </if>
+            <if test="longitude != null" >
+                longitude,
+            </if>
+            <if test="latitude != null" >
+                latitude,
+            </if>
+            <if test="regioncode != null" >
+                regionCode,
+            </if>
+            <if test="superiorareacode != null" >
+                SuperiorAreaCode,
+            </if>
+            <if test="regionreferred != null" >
+                regionReferred,
+            </if>
+            <if test="regionlevel != null" >
+                regionLevel,
+            </if>
+            <if test="operationid != null" >
+                operationid,
+            </if>
+            <if test="operationtime != null" >
+                operationTime,
+            </if>
+            <if test="zfflag != null" >
+                ZFflag,
+            </if>
+            <if test="avaCirImage!=null">
+            	avaCirImage,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides="," >
+            <if test="regionid != null" >
+                #{regionid,jdbcType=INTEGER},
+            </if>
+            <if test="unionid != null" >
+                #{unionid,jdbcType=VARCHAR},
+            </if>
+            <if test="address != null" >
+                #{address,jdbcType=VARCHAR},
+            </if>
+            <if test="longitude != null" >
+                #{longitude,jdbcType=DOUBLE},
+            </if>
+            <if test="latitude != null" >
+                #{latitude,jdbcType=DOUBLE},
+            </if>
+            <if test="regioncode != null" >
+                #{regioncode,jdbcType=INTEGER},
+            </if>
+            <if test="superiorareacode != null" >
+                #{superiorareacode,jdbcType=INTEGER},
+            </if>
+            <if test="regionreferred != null" >
+                #{regionreferred,jdbcType=VARCHAR},
+            </if>
+            <if test="regionlevel != null" >
+                #{regionlevel,jdbcType=VARCHAR},
+            </if>
+            <if test="operationid != null" >
+                #{operationid,jdbcType=VARCHAR},
+            </if>
+            <if test="operationtime != null" >
+                #{operationtime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="zfflag != null" >
+                #{zfflag,jdbcType=CHAR},
+            </if>
+             <if test="avaCirImage!=null">
+            	#{avaCirImage},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.luke.model.Region" >
+        update region
+        <set >
+            <if test="unionid != null" >
+                unionid = #{unionid,jdbcType=VARCHAR},
+            </if>
+            <if test="address != null" >
+                address = #{address,jdbcType=VARCHAR},
+            </if>
+            <if test="longitude != null" >
+                longitude = #{longitude,jdbcType=DOUBLE},
+            </if>
+            <if test="latitude != null" >
+                latitude = #{latitude,jdbcType=DOUBLE},
+            </if>
+            <if test="regioncode != null" >
+                regionCode = #{regioncode,jdbcType=INTEGER},
+            </if>
+            <if test="superiorareacode != null" >
+                SuperiorAreaCode = #{superiorareacode,jdbcType=INTEGER},
+            </if>
+            <if test="regionreferred != null" >
+                regionReferred = #{regionreferred,jdbcType=VARCHAR},
+            </if>
+            <if test="regionlevel != null" >
+                regionLevel = #{regionlevel,jdbcType=VARCHAR},
+            </if>
+            <if test="operationid != null" >
+                operationid = #{operationid,jdbcType=VARCHAR},
+            </if>
+            <if test="operationtime != null" >
+                operationTime = #{operationtime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="zfflag != null" >
+                ZFflag = #{zfflag,jdbcType=CHAR},
+            </if>
+        </set>
+        where regionid = #{regionid,jdbcType=INTEGER}
+    </update>
+
+    <update id="updateByPrimaryKey" parameterType="com.luke.model.Region" >
+        update region
+        set unionid = #{unionid,jdbcType=VARCHAR},
+            address = #{address,jdbcType=VARCHAR},
+            longitude = #{longitude,jdbcType=DOUBLE},
+            latitude = #{latitude,jdbcType=DOUBLE},
+            regionCode = #{regioncode,jdbcType=INTEGER},
+            SuperiorAreaCode = #{superiorareacode,jdbcType=INTEGER},
+            regionReferred = #{regionreferred,jdbcType=VARCHAR},
+            regionLevel = #{regionlevel,jdbcType=VARCHAR},
+            operationid = #{operationid,jdbcType=VARCHAR},
+            operationTime = #{operationtime,jdbcType=TIMESTAMP},
+            ZFflag = #{zfflag,jdbcType=CHAR}
+        where regionid = #{regionid,jdbcType=INTEGER}
+    </update>
+</mapper>

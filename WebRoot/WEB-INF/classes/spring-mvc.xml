@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:mvc="http://www.springframework.org/schema/mvc"
+    xmlns:aop="http://www.springframework.org/schema/aop"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/mvc
+        http://www.springframework.org/schema/mvc/spring-mvc.xsd
+        http://www.springframework.org/schema/aop
+        http://www.springframework.org/schema/aop/spring-aop.xsd
+			">
+
+       <!--mvc 配置  -->
+	<context:component-scan base-package="com.luke"/>
+	<mvc:default-servlet-handler/>
+	<mvc:annotation-driven />
+	
+	
+	<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="prefix" value="/WEB-INF/jsp/"></property>
+		<property name="suffix" value=".jsp"></property>
+	</bean>
+	<!--支持多文件上传  -->
+	<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<property name="maxUploadSize" value="10000000"></property>
+		<property name="maxInMemorySize" value="1000000"></property>
+		<property name="defaultEncoding" value="UTF-8"></property>
+	</bean>
+	
+	<!-- c3p0 -->
+	<context:property-placeholder location="classpath:*.properties"/>
+	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+       <!-- 基础配置 -->
+     <property name="jdbcUrl" value="${jdbc.url}"></property>
+     <property name="driverClass" value="${jdbc.driver}"></property>
+     <property name="user" value="${jdbc.user}"></property>
+     <property name="password" value="${jdbc.password}"></property>
+
+     <!-- 关键配置 -->
+     <!--初始化时获取三个连接，取值应在minPoolSize与maxPoolSize之间。Default: 3 -->
+     <property name="initialPoolSize" value="${c3p0.initialPoolSize}"></property>
+     <!--连接池中保留的最小连接数。Default: 2 -->
+     <property name="minPoolSize" value="${c3p0.minPoolSize}"></property>
+     <!--连接池中保留的最大连接数。Default: 15 -->
+     <property name="maxPoolSize" value="${c3p0.maxPoolSize}"></property>
+     <!--当连接池中的连接耗尽的时候c3p0一次同时获取的连接数。Default: 3 -->
+     <property name="acquireIncrement" value="${c3p0.acquireIncrement}"></property>
+
+     <!-- 性能配置 -->
+     <!-- 控制数据源内加载的PreparedStatements数量。如果maxStatements与maxStatementsPerConnection均为0，则缓存被关闭。Default: 0 -->
+     <property name="maxStatements" value="${c3p0.maxStatements}"></property>
+     <!-- maxStatementsPerConnection定义了连接池内单个连接所拥有的最大缓存statements数。Default: 0 -->
+     <property name="maxStatementsPerConnection" value="${c3p0.maxStatementsPerConnection}"></property>
+     <!--最大空闲时间,1800秒内未使用则连接被丢弃。若为0则永不丢弃。Default: 0 -->
+     <property name="maxIdleTime" value="${c3p0.maxIdleTime}"></property>
+    </bean>
+	<!-- mybatis -->
+	<bean id="sqlsessionfactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource"></property>
+		<property name="configLocation" value="classpath:spring-mybatis.xml"></property>
+		<property name="mapperLocations" value="classpath:com/luke/xml/*.xml"></property>
+	</bean>
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<!--注意不要用ref  -->
+		<property name="sqlSessionFactoryBeanName" value="sqlsessionfactory"></property>
+		<property name="basePackage" value="com.luke.dao"></property>
+	</bean>
+	
+	<!-- redis -->
+	
+	 <!--设置连接池-->
+    <bean id="poolConfig" class="redis.clients.jedis.JedisPoolConfig">
+        <property name="maxIdle" value="${redis.maxIdle}"/>
+        <property name="maxTotal" value="${redis.maxTotal}" />
+        <property name="maxWaitMillis" value="${redis.maxWaitMillis}" />
+        <property name="testOnBorrow" value="${redis.testOnBorrow}" />
+        <property name="testOnReturn" value="${redis.testOnReturn}" />
+    </bean>
+    <!--设置链接属性-->
+   <bean id="connectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
+        <property name="hostName" value="${redis.host}"></property>
+        <property name="port" value="${redis.port}"></property>
+        <property name="password" value="${redis.password}"></property>
+        <property name="poolConfig" ref="poolConfig"></property>
+    </bean>
+  
+    <!-- Jedis模板配置  -->
+    <bean id="redisTemplate" class="org.springframework.data.redis.core.StringRedisTemplate">
+        <property name="connectionFactory"   ref="connectionFactory" />
+         <property name="keySerializer">  
+            <bean  
+            class="org.springframework.data.redis.serializer.StringRedisSerializer" />  
+        </property>  
+        <property name="valueSerializer">  
+            <bean  
+                class="org.springframework.data.redis.serializer.JdkSerializationRedisSerializer" />  
+        </property> 
+    </bean>
+    
+	<!-- quartz -->
+    <!-- 注入任务处理类bean -->
+    <bean id="QuartZJobUtil" class="com.luke.util.QuartZJobUtil"></bean>
+    <!-- 任务触发器详细信息bean -->
+    <bean id="SpringQtzJob" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject" ref="QuartZJobUtil"></property>
+        <property name="targetMethod" value="execute"></property>
+       <!--  <property name="concurrent" value="false" /> 作业不并发调度 -->
+    </bean>
+    <!-- 定义trigger 触发器 -->
+    <bean id="cronTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="SpringQtzJob"></property>
+        <property name="cronExpression" value="${cron.Exp}"></property>
+    </bean>
+
+    <!-- 设置触发器调度工厂 -->
+    <bean id="scheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="triggers">
+           <list>
+                <ref bean="cronTrigger"/>
+           </list>
+        </property>
+    </bean>
+    
+    
+         	
+</beans>

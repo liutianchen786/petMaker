@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.luke.dao.CircleMapper" >
+	<!--  <cache type="com.luke.util.RedisCache" />-->
+    <resultMap id="BaseResultMap" type="com.luke.model.Circle" >
+        <id column="circleid" property="circleid" jdbcType="INTEGER" />
+        <result column="cname" property="cname" jdbcType="VARCHAR" />
+        <result column="cDesc" property="cdesc" jdbcType="VARCHAR" />
+        <result column="circleimage" property="circleimage" jdbcType="VARCHAR" />
+        <result column="total" property="total" jdbcType="INTEGER" />
+        <result column="managerid" property="managerid" jdbcType="INTEGER" />
+        <result column="todaycount" property="todaycount" jdbcType="INTEGER" />
+        <result column="unionid" property="unionid" jdbcType="VARCHAR" />
+        <result column="state" property="state" jdbcType="VARCHAR" />
+    </resultMap>
+
+    <sql id="Base_Column_List" >
+        circleid, cname, cDesc, circleimage, total, managerid, todaycount, unionid, state
+    </sql>
+
+    <select id="selectDetailCircle" resultType="Map" parameterType="java.lang.Object"  >
+			select
+					ifnull(ucr.islike,2) isLike,
+					c.total,
+					c.state,
+					c.circleImage,
+					c.cName,
+					c.cDesc					
+			from
+					circle c
+			left join
+					user_circlelike_record ucr
+			on
+					c.circleid = ucr.circleid	
+			where
+					c.circleid = #{circleId}
+			and
+					ucr.unionid = #{unionId}
+
+    </select>
+    
+     
+     
+     
+     
+     <select id="selectAllcircled" resultType="Map" parameterType="string">
+    	select 
+    			c.circleId,c.cname,c.cDesc,c.circleimage,ifnull(c.total,0) total,ifnull(c.todaycount,0) todaycount,
+    			ifnull(ucr.isLike,0) isLike,ifnull(ucr.userCircleRecordId,0) userCircleRecordId
+    	from 
+    			circle  c
+    	left join
+    			user_circlelike_record  ucr
+    	on		
+    			c.circleid = ucr.circleid
+    		and
+    			ucr.unionId= #{unionid}
+    	where
+    		c.ZFflag= 0
+    	<if test="cname!=null">
+    		and c.cname like CONCAT(CONCAT('%',#{cname},'%'))
+    	</if>
+    	 order by 
+    		FIELD(ucr.isLike,0,2,1),circleId asc
+     </select>
+     
+     <select id="selectcircle" resultType="Map">
+		
+		select 
+			c.circleid,
+			c.circleimage,
+			c.cname,
+			c.cDesc,
+			d.count 
+		from circle c
+			LEFT JOIN
+		(select 
+			count(1) count,
+			ucr.circleId ucrid 
+		from message m,user_circle_record ucr 
+			where ucr.circleId = m.circleId
+		and ucr.ExitTime &lt;= m.messTime
+			GROUP BY ucr.circleId) d 
+		on c.circleid = d.ucrid
+		where
+			instr(
+		(select 
+			u.circleid 
+		from user u 
+			where 
+		u.unionId = #{unionid,jdbcType=VARCHAR}),c.circleid)
+     </select>
+     
+     <insert id="insertCircleLike" parameterType="com.luke.model.UserCirclelikeRecord">
+     		insert into 
+     				user_circlelike_record (userCircleRecordId,unionId,circleId,isLike,opreationId,ZFflag)
+     		values
+     				(UUID(),#{unionId},#{circleId},#{isLike},#{unionId},'0')
+     </insert>
+	
+	 <update id="updateCircleLike" parameterType="com.luke.model.UserCirclelikeRecord">
+	 		update 
+	 				user_circlelike_record
+	 		set
+	 			    isLike= #{isLike}
+	 		where
+	 				unionId = #{unionId}
+	 		and
+	 				circleId = #{circleId}
+	 
+	 </update>
+	 <update id="updateCircleCount" parameterType="integer">
+	 		update
+	 				circle
+	 		set
+	 				total=total+1,
+	 				todaycount=todaycount+1
+	 		where
+	 				circleid = #{circleid}
+	 
+	 </update>
+
+</mapper>

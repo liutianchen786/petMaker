@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.luke.dao.ClicklikeMapper" >
+
+    <resultMap id="BaseResultMap" type="com.luke.model.Clicklike" >
+        <id column="id" property="id" jdbcType="INTEGER" />
+        <result column="ifclick" property="ifclick" jdbcType="TINYINT" />
+        <result column="clicktime" property="clicktime" jdbcType="TIMESTAMP" />
+        <result column="mid" property="mid" jdbcType="INTEGER" />
+        <result column="unionid" property="unionid" jdbcType="VARCHAR" />
+        <result column="messunionid" property="messunionid" jdbcType="VARCHAR" />
+        <result column="clickcount" property="clickcount" jdbcType="INTEGER" />
+    </resultMap>
+
+    <sql id="Base_Column_List" >
+        id, ifclick, clicktime, mid, unionid, messunionid, clickcount
+    </sql>
+
+	
+	<!-- 我的关注 -->
+	<select id="selectcircle" resultType="Map">
+	 select c.circleid,c.circleimage,c.cname,c.cDesc,d.count from circle c
+		LEFT JOIN
+	(select count(1) count,ucr.circleId ucrid from message m,user_circle_record ucr 
+		where ucr.circleId = m.circleId
+		and ucr.ExitTime &lt;= m.messTime
+	GROUP BY ucr.circleId) d 
+		on c.circleid = d.ucrid;
+	</select>
+	
+	<select id="selectIfClick" resultType="Map">
+		select ifclick,unionid,clicktime from clicklike where mid = #{mid,jdbcType=INTEGER} order by clicktime desc limit 1 
+	</select>
+	<update id="updaterow" >
+			update 		
+					clicklike
+			set 
+					ifclick=#{ifclick}
+			where
+					unionid=#{unionid}
+			and
+					messunionid=#{messunionid}
+			and
+					mid =#{mid}
+	</update>
+
+
+
+    <insert id="insertSelective" parameterType="com.luke.model.Clicklike" >
+        insert into clicklike
+        <trim prefix="(" suffix=")" suffixOverrides="," >
+            <if test="id != null" >
+                id,
+            </if>
+            <if test="ifclick != null" >
+                ifclick,
+            </if>
+            <if test="clicktime != null" >
+                clicktime,
+            </if>
+            <if test="mid != null" >
+                mid,
+            </if>
+            <if test="unionid != null" >
+                unionid,
+            </if>
+            <if test="messunionid != null" >
+                messunionid,
+            </if>
+            <if test="clickcount != null" >
+                clickcount,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides="," >
+            <if test="id != null" >
+                #{id,jdbcType=INTEGER},
+            </if>
+            <if test="ifclick != null" >
+                #{ifclick,jdbcType=TINYINT},
+            </if>
+            <if test="clicktime != null" >
+                #{clicktime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="mid != null" >
+                #{mid,jdbcType=INTEGER},
+            </if>
+            <if test="unionid != null" >
+                #{unionid,jdbcType=VARCHAR},
+            </if>
+            <if test="messunionid != null" >
+                #{messunionid,jdbcType=VARCHAR},
+            </if>
+            <if test="clickcount != null" >
+                #{clickcount,jdbcType=INTEGER},
+            </if>
+        </trim>
+    </insert>
+<!-- 查询点赞和评论的条数 -->
+<!-- type 0 是点赞 1是评论 -->
+	<select id="queryClicklike" resultType="Map">
+		   select 
+				cl.unionid unionid,cl.clicktime clicktimeOrcontent,date_format(cl.clicktime,"%H:%i") time,
+				u.nickname nickname,u.avatarUrl avatarUrl,me.messid messid,me.messDesc messDesc
+			FROM
+						clicklike cl
+			left JOIN
+						user u
+			on
+						cl.unionid = u.unionId 
+			left join
+						message me
+			on
+						cl.mid = messid
+			where 
+						cl.messunionid = #{unionId}
+			and
+						cl.ifclick = 1
+			and
+						cl.ZFflag = 0
+			and
+						cl.clicktime>
+										(select 
+													max(unr.ExitTime) exitTime
+										from
+													user_notify_record  unr
+										where 
+													unr.unionid = #{unionId}
+										and
+													unr.opreationType= 0)						
+	</select>
+	
+	<select id= "queryComments" resultType="Map">
+		select 
+			cm.unionid unionid,cm.content clicktimeOrcontent,date_format(cm.createtime,"%H:%i") time,
+			u.nickname nickname,u.avatarUrl avatarUrl,me.messid messid,me.messDesc messDesc,'1' type
+					from	
+								comments  cm
+					left join
+								user u
+					on
+								cm.unionid=u.unionId
+					left join
+								message me
+					on
+								me.messid=cm.mid
+					where
+								cm.messunionid =#{unionId}
+					and
+								cm.ZFflag = 0
+					and
+							cm.createtime>(select 
+													max(unr.ExitTime) exitTime
+										from
+													user_notify_record  unr
+										where 
+													unr.unionid = #{unionId}
+										and
+													unr.opreationType= 0
+										) 	
+	
+	</select>
+	
+	<select id="queryNotice" resultType="map">
+		select lks.id,
+			(case 
+					when 
+							timestampdiff(HOUR,lks.time,SYSDATE()) BETWEEN 1 and 24
+					then 
+							concat(timestampdiff(HOUR,lks.time,SYSDATE()),"小时前")
+					when
+							timestampdiff(MINUTE,lks.time,SYSDATE()) &lt; 60
+					then
+							concat(timestampdiff(MINUTE,lks.time,SYSDATE()),"分钟前")
+					else
+							date_format(lks.time,'%Y年%c月%e日 %H:%i')
+					end) time,
+			lks.mid,lks.unionid,lks.messunionid,lks.conorlike,
+			u.nickname nickname,u.avatarUrl avatarUrl,me.messDesc messDesc,me.messimage messimage
+ 		from
+		(SELECT id,clicktime as time,mid,unionid,messunionid,ifclick as conorlike from clicklike cl 
+		where cl.messunionid = #{unionId}
+		and cl.ifclick = 1
+		and cl.ZFflag = 0
+		UNION
+		select commid as id,createtime as time,mid,unionid,messunionid,content as conorlike from comments cm 
+		where cm.messunionid = #{unionId}
+		and cm.ZFflag = 0 ORDER BY time desc) lks
+		LEFT JOIN message me on lks.mid = me.messid
+		left JOIN user u on lks.unionid = u.unionId 
+		LEFT JOIN (select max(unr.ExitTime) exitTime,unionid
+		from user_notify_record  unr
+		where unr.unionid = #{unionId}
+		and unr.opreationType= 0) notify on lks.messunionid = notify.unionid
+		where lks.time &gt; notify.exitTime
+		and lks.unionid!=lks.messunionid
+	ORDER BY lks.time desc
+	</select>
+	
+	<select id="queryLikeCom" resultType="map">
+		SELECT g.flag+f.flg flag,ifnull(f.flg,0) fflg
+		from
+			(select count(1) flg
+ 		from
+		(SELECT id,clicktime as time,mid,unionid,messunionid,ifclick as conorlike from clicklike cl 
+		where cl.messunionid = #{unionId}
+		and cl.ifclick = 1
+		and cl.ZFflag = 0
+		UNION
+		select commid as id,createtime as time,mid,unionid,messunionid,content as conorlike from comments cm 
+		where cm.messunionid = #{unionId}
+		and cm.ZFflag = 0 ORDER BY time desc) lks
+		LEFT JOIN message me on lks.mid = me.messid
+		left JOIN user u on lks.unionid = u.unionId 
+		LEFT JOIN (select max(unr.ExitTime) exitTime,unionid
+		from user_notify_record  unr
+		where unr.unionid = #{unionId}
+		and unr.opreationType= 0) notify on lks.messunionid = notify.unionid
+		where lks.time &gt; notify.exitTime and lks.unionid!=lks.messunionid
+			) f,(SELECT count(1) flag,sendUnionId,toUnionId from user_chat_record 
+		where chatState = 1 and toUnionId = #{unionId}) g
+	</select>
+	
+	<insert id="insertNotify">
+		insert into
+				user_notify_record
+		(user_notify_recordId,unionId,opreationType,ExitTime,opreationTime,opreationId,ZFflag)
+		values
+		(UUID(),#{unionId},0,#{ExitTime},#{ExitTime},#{unionId},0)
+	
+	</insert>
+
+</mapper>

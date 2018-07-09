@@ -1,0 +1,501 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.luke.dao.UserMapper" >
+
+   <resultMap id="BaseResultMap" type="com.luke.model.User" >
+        <id column="uid" property="uid" jdbcType="INTEGER" />
+        <result column="openid" property="openid" jdbcType="VARCHAR" />
+        <result column="unionId" property="unionid" jdbcType="VARCHAR" />
+        <result column="phone" property="phone" jdbcType="INTEGER" />
+        <result column="avatarUrl" property="avatarurl" jdbcType="VARCHAR" />
+        <result column="nickname" property="nickName" jdbcType="VARCHAR" />
+        <result column="gender" property="gender" jdbcType="VARCHAR" />
+        <result column="city" property="city" jdbcType="VARCHAR" />
+        <result column="provice" property="provice" jdbcType="VARCHAR" />
+        <result column="country" property="country" jdbcType="VARCHAR" />
+        <result column="money" property="money" jdbcType="DECIMAL" />
+        <result column="affectiveState" property="affectivestate" jdbcType="CHAR" />
+        <result column="qrCode" property="qrcode" jdbcType="VARCHAR" />
+        <result column="state" property="state" jdbcType="TINYINT" />
+        <result column="backGroundId" property="backGroundId" jdbcType="VARCHAR" />
+        <result column="vipStartTime" property="vipstarttime" jdbcType="TIMESTAMP" />
+        <result column="vipEndTime" property="vipendtime" jdbcType="TIMESTAMP" />
+        <result column="userpoints" property="userpoints" jdbcType="DECIMAL" />
+        <result column="userLevel" property="userlevel" jdbcType="INTEGER" />
+        <result column="circleid" property="circleid" jdbcType="VARCHAR" />
+        <result column="todayifsign" property="todayifsign" jdbcType="TINYINT" />
+        <result column="ContinuousDay" property="continuousday" jdbcType="INTEGER" />
+        <result column="userDesc" property="userdesc" jdbcType="VARCHAR" />
+        <result column="operationid" property="operationid" jdbcType="VARCHAR" />
+        <result column="opertaiontime" property="opertaiontime" jdbcType="TIMESTAMP" />
+        <result column="ZFflag" property="zfflag" jdbcType="CHAR" />
+        <result column="thisWeekMoney" property="thisweekmoney" jdbcType="DECIMAL" />
+        <result column="lastWeekMoney" property="lastweekmoney" jdbcType="DECIMAL" />
+        <result column="phonePic" property="phonePic" jdbcType="VARCHAR"/>
+    </resultMap>
+    <resultMap id="AddressMap" type="com.luke.model.UserDileveryInfo" >
+        <id column="deliveryAddressId" property="deliveryaddressid" jdbcType="INTEGER" />
+        <result column="unionid" property="unionid" jdbcType="VARCHAR" />
+        <result column="deliveryPhone" property="deliveryphone" jdbcType="INTEGER" />
+        <result column="deliveryUserName" property="deliveryusername" jdbcType="VARCHAR" />
+        <result column="addressFromMap" property="addressfrommap" jdbcType="VARCHAR" />
+        <result column="addressDetail" property="addressdetail" jdbcType="LONGVARCHAR" />
+        <result column="isDeafult" property="isdeafult" jdbcType="INTEGER" />
+        <result column="operationId" property="operationid" jdbcType="VARCHAR" />
+        <result column="operationTime" property="operationtime" jdbcType="TIMESTAMP" />
+        <result column="ZFflag" property="zfflag" jdbcType="CHAR" />
+    </resultMap>
+      <resultMap id="RegionMap" type="com.luke.model.ChRegion" >
+        <id column="ID" property="id" jdbcType="BIGINT" />
+        <result column="PARENT_ID" property="parentId" jdbcType="BIGINT" />
+        <result column="REGION_ID" property="regionId" jdbcType="BIGINT" />
+        <result column="REGION_PARENT_ID" property="regionParentId" jdbcType="BIGINT" />
+        <result column="REGION_NAME" property="regionName" jdbcType="VARCHAR" />
+        <result column="REGION_TYPE" property="regionType" jdbcType="INTEGER" />
+        <result column="ZIPCODE" property="zipcode" jdbcType="VARCHAR" />
+        <result column="QUHAO" property="quhao" jdbcType="VARCHAR" />
+        <result column="Status" property="status" jdbcType="BIT" />
+    </resultMap>
+        <resultMap id="GoodsRecordMap" type="com.luke.model.UserGoodsOrderRecord" >
+        <id column="goodsOrderRecordId" property="goodsOrderRecordId" jdbcType="VARCHAR" />
+        <result column="goodsId" property="goodsId" jdbcType="VARCHAR" />
+        <result column="deliveryAddressId" property="deliveryAddressId" jdbcType="INTEGER" />
+        <result column="unionid" property="unionId" jdbcType="VARCHAR" />
+        <result column="orderState" property="orderState" jdbcType="INTEGER" />
+        <result column="orderTime" property="orderTime" jdbcType="TIMESTAMP" />
+        <result column="payTime" property="payTime" jdbcType="TIMESTAMP" />
+        <result column="sendTime" property="sendTime" jdbcType="TIMESTAMP" />
+        <result column="cancelTime" property="cancelTime" jdbcType="TIMESTAMP" />
+        <result column="operationId" property="operationId" jdbcType="VARCHAR" />
+        <result column="operationTime" property="operationTime" jdbcType="TIMESTAMP" />
+        <result column="ZFflag" property="zfFlag" jdbcType="CHAR" />
+    </resultMap>
+  <sql id="Base_Column_List" >
+        uid, openid, unionId, phone, avatarUrl, nickname, gender, city, provice, country, 
+        money, affectiveState, qrCode, state, backGroundId, vipStartTime, vipEndTime, 
+        userpoints, userLevel, circleid, todayifsign, ContinuousDay, userDesc, operationid, 
+        opertaiontime, ZFflag, phonePic
+    </sql>
+
+	<insert id="insertGoodsRecord" parameterType="com.luke.model.UserGoodsOrderRecord">
+			insert into user_goods_orderRecord
+					(goodsOrderRecordId,goodsId,deliveryAddressId,
+					 unionid,orderState,orderTime,
+					 payTime,operationId,operationTime,ZFflag)
+			values
+					(#{goodsOrderRecordId},#{goodsId},#{deliveryAddressId},
+					#{unionId},#{orderState},#{orderTime},
+					#{payTime},#{unionId},#{operationTime},#{zfFlag})
+	</insert>
+
+
+	<!-- 查询是否存在某个unionid -->
+	<select id="selectByOpenId" resultType="com.luke.model.User" >
+        select <include refid="Base_Column_List" />
+        from user
+        where openid = #{openid,jdbcType=VARCHAR}
+    </select>
+	
+
+	<select id="selectPetAndPerson" resultType="Map">
+			SELECT 
+			u.uid,
+			u.openId,
+			u.unionId,
+			u.phone,
+			u.avatarUrl,
+			u.nickname as nickName,
+			u.gender,
+			u.userAge,
+			if(u.city='',u.country,u.city) city,
+			u.provice,
+			u.money,
+			u.state,
+			u.qrCode,
+			u.userpoints,
+			u.userLevel,
+			u.userDesc,
+			p.petName,
+			p.petId,
+			p.petAge,
+			p.petSex,
+			bi.userBkgdUrl,
+			p.petImageUrl,
+			pt.petTypeName,
+			pc.vaccineName,
+			u.opertaiontime,
+			u.phonePic,
+			ifnull(u.vipStartTime,0) vipStartTime,
+			ifnull(DATE_FORMAT(u.vipEndTime,'%Y-%m-%d'),0) vipEndTime,
+			u.thisWeekMoney,
+			u.lastWeekMoney,
+			(case affectiveState
+			when '0'  then '保密'
+			when '1' then '单身'
+			when '2' then '恋爱'
+			when '3' then '已婚'
+			else '保密'
+			end) affectiveState	
+			<if test="friendsUnionId!=null">
+						,ifnull(ufr.flag,0) flag	
+			</if> 
+			from
+			 	user u  
+			left join
+			 	pet_info  p
+			on 
+				u.unionId=p.unionId
+			left join
+				pet_type pt
+			on 
+			 	p.petTypeid=pt.petTypeid
+			left join
+				pet_vaccine pc
+			on  
+				p.vaccineId= pc.vaccineId
+			left join
+				backgroundImage_Info  bi
+			on
+				bi.backGroundId = u.backGroundId
+		<if test="friendsUnionId!=null">
+			left join
+				user_friends_record ufr
+			on 
+				u.unionId = ufr.friendsUnionId
+			and
+				ufr.friendsUnionId = #{unionId}
+			and
+				ufr.unionId = #{friendsUnionId,jdbcType=VARCHAR}
+		 </if>
+			where 
+				u.unionId = #{unionId,jdbcType=VARCHAR}
+	</select>
+
+
+    <insert id="insert" parameterType="com.luke.model.User" >
+        insert into user (uid, openid, 
+            unionId, phone, avatarUrl, 
+            nickname, gender, city, 
+            provice, country, money, 
+            qrCode, state, 
+            circleid, todayifsign, ContinuousDay
+            )
+        values (#{uid,jdbcType=INTEGER},  #{openid,jdbcType=VARCHAR}, 
+            #{unionid,jdbcType=VARCHAR}, #{phone,jdbcType=INTEGER}, #{avatarurl,jdbcType=VARCHAR}, 
+            #{nickname,jdbcType=VARCHAR}, #{gender,jdbcType=VARCHAR}, #{city,jdbcType=VARCHAR}, 
+            #{provice,jdbcType=VARCHAR}, #{country,jdbcType=VARCHAR}, #{money,jdbcType=DECIMAL}, 
+            #{qrcode,jdbcType=VARCHAR}, #{state,jdbcType=TINYINT}, 
+            #{circleid,jdbcType=VARCHAR}, #{todayifsign,jdbcType=TINYINT}, #{continuousday,jdbcType=INTEGER}
+            )
+    </insert>
+
+    <insert id="insertSelective" parameterType="com.luke.model.User" >
+        insert into user
+        <trim prefix="(" suffix=")" suffixOverrides="," >
+            <if test="uid != null" >
+                uid,
+            </if>
+       
+            <if test="openid != null" >
+                openid,
+            </if>
+            <if test="unionid != null" >
+                unionId,
+            </if>
+            <if test="phone != null" >
+                phone,
+            </if>
+            <if test="avatarurl != null" >
+                avatarUrl,
+            </if>
+            <if test="nickname != null" >
+                nickname,
+            </if>
+            <if test="gender != null" >
+                gender,
+            </if>
+            <if test="city != null" >
+                city,
+            </if>
+            <if test="provice != null" >
+                provice,
+            </if>
+            <if test="country != null" >
+                country,
+            </if>
+            <if test="money != null" >
+                money,
+            </if>
+            <if test="qrcode != null" >
+                qrCode,
+            </if>
+            <if test="state != null" >
+                state,
+            </if>
+         
+            <if test="circleid != null" >
+                circleid,
+            </if>
+            <if test="todayifsign != null" >
+                todayifsign,
+            </if>
+            <if test="continuousday != null" >
+                ContinuousDay,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides="," >
+            <if test="uid != null" >
+                #{uid,jdbcType=INTEGER},
+            </if>
+         
+            <if test="openid != null" >
+                #{openid,jdbcType=VARCHAR},
+            </if>
+            <if test="unionid != null" >
+                #{unionid,jdbcType=VARCHAR},
+            </if>
+            <if test="phone != null" >
+                #{phone,jdbcType=INTEGER},
+            </if>
+            <if test="avatarurl != null" >
+                #{avatarurl,jdbcType=VARCHAR},
+            </if>
+            <if test="nickname != null" >
+                #{nickname,jdbcType=VARCHAR},
+            </if>
+            <if test="gender != null" >
+                #{gender,jdbcType=VARCHAR},
+            </if>
+            <if test="city != null" >
+                #{city,jdbcType=VARCHAR},
+            </if>
+            <if test="provice != null" >
+                #{provice,jdbcType=VARCHAR},
+            </if>
+            <if test="country != null" >
+                #{country,jdbcType=VARCHAR},
+            </if>
+            <if test="money != null" >
+                #{money,jdbcType=DECIMAL},
+            </if>
+            <if test="qrcode != null" >
+                #{qrcode,jdbcType=VARCHAR},
+            </if>
+            <if test="state != null" >
+                #{state,jdbcType=TINYINT},
+            </if>
+        
+            <if test="circleid != null" >
+                #{circleid,jdbcType=VARCHAR},
+            </if>
+            <if test="todayifsign != null" >
+                #{todayifsign,jdbcType=TINYINT},
+            </if>
+            <if test="continuousday != null" >
+                #{continuousday,jdbcType=INTEGER},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.luke.model.User" >
+      update user
+        <set >
+            <if test="openid != null" >
+                openid = #{openid,jdbcType=VARCHAR},
+            </if>
+            <if test="phone != null" >
+                phone = #{phone,jdbcType=INTEGER},
+            </if>
+            <if test="avatarurl != null" >
+                avatarUrl = #{avatarurl,jdbcType=VARCHAR},
+            </if>
+            <if test="nickname != null" >
+                nickname = #{nickname,jdbcType=VARCHAR},
+            </if>
+            <if test="gender != null" >
+                gender = #{gender,jdbcType=VARCHAR},
+            </if>
+            <if test="city != null" >
+                city = #{city,jdbcType=VARCHAR},
+            </if>
+            <if test="provice != null" >
+                provice = #{provice,jdbcType=VARCHAR},
+            </if>
+            <if test="country != null" >
+                country = #{country,jdbcType=VARCHAR},
+            </if>
+            <if test="money != null" >
+            	thisweekmoney = #{money}+ thisweekmoney,
+            	money = #{money}+money,
+            </if>
+            <if test ="userage!=null">
+            	userage = #{userage},
+            </if>
+            <if test="affectivestate != null" >
+                affectiveState = #{affectivestate,jdbcType=CHAR},
+            </if>
+            <if test="qrcode != null" >
+                qrCode = #{qrcode,jdbcType=VARCHAR},
+            </if>
+            <if test="state != null" >
+                state = #{state,jdbcType=TINYINT},
+            </if>
+            <if test="backGroundId != null" >
+                backGroundId = #{backGroundId,jdbcType=VARCHAR},
+            </if>
+            <if test="vipstarttime != null" >
+                vipStartTime = #{vipstarttime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="vipendtime != null" >
+                vipEndTime = #{vipendtime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="userpoints != null" >
+                userpoints = #{userpoints,jdbcType=DECIMAL},
+            </if>
+            <if test="userlevel != null" >
+                userLevel = #{userlevel,jdbcType=INTEGER},
+            </if>
+            <if test="circleid != null" >
+                circleid = #{circleid,jdbcType=VARCHAR},
+            </if>
+            <if test="todayifsign != null" >
+                todayifsign = #{todayifsign,jdbcType=TINYINT},
+            </if>
+            <if test="continuousday != null" >
+                ContinuousDay = #{continuousday,jdbcType=INTEGER},
+            </if>
+            <if test="userdesc != null" >
+                userDesc = #{userdesc,jdbcType=VARCHAR},
+            </if>
+            <if test="operationid != null" >
+                operationid = #{operationid,jdbcType=VARCHAR},
+            </if>
+            <if test="opertaiontime != null" >
+                opertaiontime = #{opertaiontime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="zfflag != null" >
+                ZFflag = #{zfflag,jdbcType=CHAR},
+            </if>
+            <if test="phonePic != null">
+            	phonePic = #{phonePic},
+            </if>
+        </set>
+        where unionid = #{unionid}
+    </update>
+
+
+    <update id="updateByPrimaryKey" parameterType="com.luke.model.User" >
+        update user
+        set 
+            openid = #{openid,jdbcType=VARCHAR},
+            phone = #{phone,jdbcType=INTEGER},
+            avatarUrl = #{avatarurl,jdbcType=VARCHAR},
+            nickname = #{nickname,jdbcType=VARCHAR},
+            gender = #{gender,jdbcType=VARCHAR},
+            city = #{city,jdbcType=VARCHAR},
+            provice = #{provice,jdbcType=VARCHAR},
+            country = #{country,jdbcType=VARCHAR},
+            money = #{money,jdbcType=DECIMAL},
+            qrCode = #{qrcode,jdbcType=VARCHAR},
+            state = #{state,jdbcType=TINYINT},
+            circleid = #{circleid,jdbcType=VARCHAR},
+            todayifsign = #{todayifsign,jdbcType=TINYINT},
+            ContinuousDay = #{continuousday,jdbcType=INTEGER}
+        where uid = #{uid,jdbcType=INTEGER}
+    </update>
+    
+    <select id="selectAddress"  resultMap="AddressMap">
+    	select 
+    			deliveryAddressId,
+    			unionid,
+    			deliveryPhone,
+    			deliveryUserName,
+    			addressFromMap,
+    			addressDetail,
+    			isDeafult
+    	from
+    			user_dilevery_info
+    	where 
+    			ZFflag= 0
+    	and 
+       			unionid = #{unionid,jdbcType=VARCHAR}
+       	<if	test="deliveryAddressId!=-1">
+       	and     
+       			deliveryAddressId=#{deliveryAddressId}
+       	</if>
+    </select>
+    
+    <insert id="insertAddress" parameterType="com.luke.model.UserDileveryInfo">
+    	insert into 
+    		user_dilevery_info(unionid,deliveryPhone,deliveryUserName,addressFromMap,addressDetail)
+    	values
+    		(#{unionid},#{deliveryphone},#{deliveryusername},#{addressfrommap},#{addressdetail})
+    </insert>
+    
+    
+    <update id="updateAddress" parameterType="com.luke.model.UserDileveryInfo">
+    	update 
+    		user_dilevery_info
+    	set
+    	 <if test="zfflag == null" >
+    		deliveryPhone =#{deliveryphone},
+    		deliveryUserName=#{deliveryusername},
+    		addressFromMap=#{addressfrommap},
+    		addressDetail=#{addressdetail}
+    	 </if>
+    		 <if test="zfflag != null" >
+                ZFflag = #{zfflag,jdbcType=CHAR}
+            </if>
+    	where
+    		unionid = #{unionid}
+    	and
+    		deliveryAddressId= #{deliveryaddressid}
+    </update>
+    
+    <select id="querybkgd" resultType="map">
+		select
+			bi.userBkgdUrl,
+			bi.backGroundId,
+			bi.bkState,
+			bi.bkName
+		from 
+			backgroundImage_Info  bi
+		where
+			bi.zfflag=0
+		and 
+			bi.bkstate!=2
+		order by
+			bi.bkstate ,bi.backGroundId asc
+     
+    </select>
+    
+    
+    <update id="updateIsdeafult" parameterType="java.lang.String">
+    	update 
+    		user_dilevery_info
+    	set
+    		(isDeafult)=
+    	<if test="deliveryAddressId==-1">
+	    	 ('0')
+    	</if>
+    	<if test="deliveryAddressId!=-1">
+	    	('1')
+    	</if>
+    	where
+    		unionid=#{unionid,jdbcType=VARCHAR}
+    	<if test="deliveryAddressId==-1">
+    	and
+    		deliveryAddressId=#{deliveryAddressId}
+    	</if>
+    </update>
+    
+    <select  id="selectChRegion" resultMap="RegionMap">
+    		select 
+    				region_id,region_parent_id,
+    				region_name,region_type
+    		from
+    				CH_REGION
+    				
+    </select>
+    
+</mapper>

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.luke.dao.RoleMapper" >
+
+    <resultMap id="BaseResultMap" type="com.luke.model.Role" >
+        <id column="roleid" property="roleid" jdbcType="INTEGER" />
+        <result column="openid" property="openid" jdbcType="VARCHAR" />
+        <result column="rolename" property="rolename" jdbcType="VARCHAR" />
+        <result column="roleDesc" property="roledesc" jdbcType="VARCHAR" />
+        <result column="state" property="state" jdbcType="VARCHAR" />
+    </resultMap>
+
+    <sql id="Base_Column_List" >
+        roleid, openid, rolename, roleDesc, state
+    </sql>
+
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+        select 
+        <include refid="Base_Column_List" />
+        from role
+        where roleid = #{roleid,jdbcType=INTEGER}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+        delete from role
+        where roleid = #{roleid,jdbcType=INTEGER}
+    </delete>
+
+    <insert id="insert" parameterType="com.luke.model.Role" >
+        insert into role (roleid, openid, rolename, 
+            roleDesc, state)
+        values (#{roleid,jdbcType=INTEGER}, #{openid,jdbcType=VARCHAR}, #{rolename,jdbcType=VARCHAR}, 
+            #{roledesc,jdbcType=VARCHAR}, #{state,jdbcType=VARCHAR})
+    </insert>
+
+    <insert id="insertSelective" parameterType="com.luke.model.Role" >
+        insert into role
+        <trim prefix="(" suffix=")" suffixOverrides="," >
+            <if test="roleid != null" >
+                roleid,
+            </if>
+            <if test="openid != null" >
+                openid,
+            </if>
+            <if test="rolename != null" >
+                rolename,
+            </if>
+            <if test="roledesc != null" >
+                roleDesc,
+            </if>
+            <if test="state != null" >
+                state,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides="," >
+            <if test="roleid != null" >
+                #{roleid,jdbcType=INTEGER},
+            </if>
+            <if test="openid != null" >
+                #{openid,jdbcType=VARCHAR},
+            </if>
+            <if test="rolename != null" >
+                #{rolename,jdbcType=VARCHAR},
+            </if>
+            <if test="roledesc != null" >
+                #{roledesc,jdbcType=VARCHAR},
+            </if>
+            <if test="state != null" >
+                #{state,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.luke.model.Role" >
+        update role
+        <set >
+            <if test="openid != null" >
+                openid = #{openid,jdbcType=VARCHAR},
+            </if>
+            <if test="rolename != null" >
+                rolename = #{rolename,jdbcType=VARCHAR},
+            </if>
+            <if test="roledesc != null" >
+                roleDesc = #{roledesc,jdbcType=VARCHAR},
+            </if>
+            <if test="state != null" >
+                state = #{state,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where roleid = #{roleid,jdbcType=INTEGER}
+    </update>
+
+    <update id="updateByPrimaryKey" parameterType="com.luke.model.Role" >
+        update role
+        set openid = #{openid,jdbcType=VARCHAR},
+            rolename = #{rolename,jdbcType=VARCHAR},
+            roleDesc = #{roledesc,jdbcType=VARCHAR},
+            state = #{state,jdbcType=VARCHAR}
+        where roleid = #{roleid,jdbcType=INTEGER}
+    </update>
+</mapper>

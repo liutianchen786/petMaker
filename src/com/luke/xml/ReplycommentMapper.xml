@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.luke.dao.ReplycommentMapper" >
+
+    <resultMap id="BaseResultMap" type="com.luke.model.Replycomment" >
+        <id column="reply-commentid" property="replyCommentid" jdbcType="INTEGER" />
+        <result column="replycontent" property="replycontent" jdbcType="VARCHAR" />
+        <result column="replytime" property="replytime" jdbcType="TIMESTAMP" />
+        <result column="commentid" property="commentid" jdbcType="INTEGER" />
+        <result column="mid" property="mid" jdbcType="INTEGER" />
+        <result column="unioinid" property="unioinid" jdbcType="VARCHAR" />
+        <result column="messunionid" property="messunionid" jdbcType="VARCHAR" />
+        <result column="state" property="state" jdbcType="VARCHAR" />
+    </resultMap>
+
+    <sql id="Base_Column_List" >
+        reply-commentid, replycontent, replytime, commentid, mid, unioinid, messunionid, 
+        state
+    </sql>
+
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+        select 
+        <include refid="Base_Column_List" />
+        from replycomment
+        where reply-commentid = #{replyCommentid,jdbcType=INTEGER}
+    </select>
+
+	<select id="selectBycommid" resultType="Map">
+		select u.nickname,u.avatarUrl,r.replycontent,r.replytime,u1.nickname nick FROM
+		(((replycomment r inner JOIN user u on r.unioinid = u.unionid)
+		inner join comments c on r.commentid = c.commid)
+		inner JOIN user u1 on r.messunionid = u1.unionid)
+		where r.commentid = #{commentid,jdbcType=INTEGER}
+	</select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+        delete from replycomment
+        where reply-commentid = #{replyCommentid,jdbcType=INTEGER}
+    </delete>
+
+    <insert id="insert" parameterType="com.luke.model.Replycomment" >
+        insert into replycomment (reply-commentid, replycontent, replytime, 
+            commentid, mid, unioinid, 
+            messunionid, state)
+        values (#{replyCommentid,jdbcType=INTEGER}, #{replycontent,jdbcType=VARCHAR}, #{replytime,jdbcType=TIMESTAMP}, 
+            #{commentid,jdbcType=INTEGER}, #{mid,jdbcType=INTEGER}, #{unioinid,jdbcType=VARCHAR}, 
+            #{messunionid,jdbcType=VARCHAR}, #{state,jdbcType=VARCHAR})
+    </insert>
+
+    <insert id="insertSelective" parameterType="com.luke.model.Replycomment" >
+        insert into replycomment
+        <trim prefix="(" suffix=")" suffixOverrides="," >
+            <if test="replyCommentid != null" >
+                reply-commentid,
+            </if>
+            <if test="replycontent != null" >
+                replycontent,
+            </if>
+            <if test="replytime != null" >
+                replytime,
+            </if>
+            <if test="commentid != null" >
+                commentid,
+            </if>
+            <if test="mid != null" >
+                mid,
+            </if>
+            <if test="unioinid != null" >
+                unioinid,
+            </if>
+            <if test="messunionid != null" >
+                messunionid,
+            </if>
+            <if test="state != null" >
+                state,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides="," >
+            <if test="replyCommentid != null" >
+                #{replyCommentid,jdbcType=INTEGER},
+            </if>
+            <if test="replycontent != null" >
+                #{replycontent,jdbcType=VARCHAR},
+            </if>
+            <if test="replytime != null" >
+                #{replytime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="commentid != null" >
+                #{commentid,jdbcType=INTEGER},
+            </if>
+            <if test="mid != null" >
+                #{mid,jdbcType=INTEGER},
+            </if>
+            <if test="unioinid != null" >
+                #{unioinid,jdbcType=VARCHAR},
+            </if>
+            <if test="messunionid != null" >
+                #{messunionid,jdbcType=VARCHAR},
+            </if>
+            <if test="state != null" >
+                #{state,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.luke.model.Replycomment" >
+        update replycomment
+        <set >
+            <if test="replycontent != null" >
+                replycontent = #{replycontent,jdbcType=VARCHAR},
+            </if>
+            <if test="replytime != null" >
+                replytime = #{replytime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="commentid != null" >
+                commentid = #{commentid,jdbcType=INTEGER},
+            </if>
+            <if test="mid != null" >
+                mid = #{mid,jdbcType=INTEGER},
+            </if>
+            <if test="unioinid != null" >
+                unioinid = #{unioinid,jdbcType=VARCHAR},
+            </if>
+            <if test="messunionid != null" >
+                messunionid = #{messunionid,jdbcType=VARCHAR},
+            </if>
+            <if test="state != null" >
+                state = #{state,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where reply-commentid = #{replyCommentid,jdbcType=INTEGER}
+    </update>
+
+    <update id="updateByPrimaryKey" parameterType="com.luke.model.Replycomment" >
+        update replycomment
+        set replycontent = #{replycontent,jdbcType=VARCHAR},
+            replytime = #{replytime,jdbcType=TIMESTAMP},
+            commentid = #{commentid,jdbcType=INTEGER},
+            mid = #{mid,jdbcType=INTEGER},
+            unioinid = #{unioinid,jdbcType=VARCHAR},
+            messunionid = #{messunionid,jdbcType=VARCHAR},
+            state = #{state,jdbcType=VARCHAR}
+        where reply-commentid = #{replyCommentid,jdbcType=INTEGER}
+    </update>
+</mapper>

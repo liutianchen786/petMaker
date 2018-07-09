@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.luke.dao.PetInfoMapper" >
+
+ <resultMap id="BaseResultMap" type="com.luke.model.PetInfo" >
+        <id column="petId" property="petid" jdbcType="INTEGER" />
+        <result column="unionId" property="unionid" jdbcType="VARCHAR" />
+        <result column="petName" property="petname" jdbcType="VARCHAR" />
+        <result column="petTypeId" property="pettypeid" jdbcType="INTEGER" />
+        <result column="petAge" property="petage" jdbcType="INTEGER" />
+        <result column="petSex" property="petsex" jdbcType="CHAR" />
+        <result column="petDes" property="petdes" jdbcType="VARCHAR" />
+        <result column="isfavorite" property="isfavorite" jdbcType="CHAR" />
+        <result column="petImageUrl" property="petimageurl" jdbcType="VARCHAR" />
+        <result column="vaccineId" property="vaccineid" jdbcType="INTEGER" />
+        <result column="operationid" property="operationid" jdbcType="INTEGER" />
+        <result column="operationtime" property="operationtime" jdbcType="TIMESTAMP" />
+        <result column="ZFflag" property="zfflag" jdbcType="CHAR" />
+    </resultMap>
+
+    <sql id="Base_Column_List" >
+        pet_info.petId petId, pet_info.unionId unionId, pet_info.petName petName, pet_info.petTypeId petTypeId, pet_info.petAge petAge, 
+        pet_info.petSex petSex, pet_info.petDes petDes, pet_info.isfavorite isfavorite, pet_info.petImageUrl petImageUrl, 
+        pet_info.vaccineId vaccineId, pet_info.operationid operationid, pet_info.operationtime operationtime, pet_info.ZFflag ZFflag
+    </sql>
+    <select id= "selectPetInfo"  parameterType="java.lang.String" resultType="Map">
+    	 	
+  	 	SELECT
+				pet_info.petId,
+				pet_info.unionId,
+				pet_info.petName,
+				pet_type.petTypeName,
+				pet_info.petTypeId,
+				pet_info.petAge,
+				pet_info.petSex,
+				pet_info.petDes,
+				pet_info.isfavorite,
+				pet_info.petImageUrl,
+				pet_info.vaccineId,
+				(CASE pvr.vaccineState
+				 when 1
+				 then '未接种疫苗'
+				 else '已接种疫苗'
+				end) vaccineName,
+				pet_info.operationid,
+				pet_info.operationtime,
+				pet_info.ZFflag
+		from
+				pet_info
+		left join
+				pet_type
+		on 
+				pet_info.petTypeId=pet_type.petTypeId
+		left join
+				pet_vaccine_record pvr
+		on
+				pvr.unionid = pet_info.unionid
+		and
+				pvr.vaccineId= 0
+		where 
+				pet_info.ZFflag =0
+		and
+				pet_type.ZFflag=0
+		and 
+				pet_info.unionId=#{unionId,jdbcType=VARCHAR}
+
+    </select>
+
+	
+	
+
+
+    <insert id="insertSelective" parameterType="com.luke.model.PetInfo" >
+        insert into pet_info
+        <trim prefix="(" suffix=")" suffixOverrides="," >
+            <if test="petid != null" >
+                petId,
+            </if>
+            <if test="unionid != null" >
+                unionId,
+            </if>
+            <if test="petname != null" >
+                petName,
+            </if>
+            <if test="pettypeid != null" >
+                petTypeId,
+            </if>
+            <if test="petage != null" >
+                petAge,
+            </if>
+            <if test="petsex != null" >
+                petSex,
+            </if>
+            <if test="petdes != null" >
+                petDes,
+            </if>
+            <if test="isfavorite != null" >
+                isfavorite,
+            </if>
+            <if test="petimageurl != null" >
+                petImageUrl,
+            </if>
+            <if test="vaccineid != null" >
+                vaccineId,
+            </if>
+            <if test="operationid != null" >
+                operationid,
+            </if>
+            <if test="operationtime != null" >
+                operationtime,
+            </if>
+            <if test="zfflag != null" >
+                ZFflag,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides="," >
+            <if test="petid != null" >
+                #{petid,jdbcType=INTEGER},
+            </if>
+            <if test="unionid != null" >
+                #{unionid,jdbcType=VARCHAR},
+            </if>
+            <if test="petname != null" >
+                #{petname,jdbcType=VARCHAR},
+            </if>
+            <if test="pettypeid != null" >
+                #{pettypeid,jdbcType=INTEGER},
+            </if>
+            <if test="petage != null" >
+                #{petage,jdbcType=INTEGER},
+            </if>
+            <if test="petsex != null" >
+                #{petsex,jdbcType=CHAR},
+            </if>
+            <if test="petdes != null" >
+                #{petdes,jdbcType=VARCHAR},
+            </if>
+            <if test="isfavorite != null" >
+                #{isfavorite,jdbcType=CHAR},
+            </if>
+            <if test="petimageurl != null" >
+                #{petimageurl,jdbcType=VARCHAR},
+            </if>
+            <if test="vaccineid != null" >
+                #{vaccineid,jdbcType=CHAR},
+            </if>
+            <if test="operationid != null" >
+                #{operationid,jdbcType=INTEGER},
+            </if>
+            <if test="operationtime != null" >
+                #{operationtime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="zfflag != null" >
+                #{zfflag,jdbcType=CHAR},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.luke.model.PetInfo" >
+        update pet_info
+        <set >
+            <if test="petname != null" >
+                petName = #{petname,jdbcType=VARCHAR},
+            </if>
+            <if test="pettypeid != null" >
+                petTypeId = #{pettypeid,jdbcType=INTEGER},
+            </if>
+            <if test="petage != null" >
+                petAge = #{petage,jdbcType=INTEGER},
+            </if>
+            <if test="petsex != null" >
+                petSex = #{petsex,jdbcType=CHAR},
+            </if>
+            <if test="petdes != null" >
+                petDes = #{petdes,jdbcType=VARCHAR},
+            </if>
+            <if test="isfavorite != null" >
+                isfavorite = #{isfavorite,jdbcType=CHAR},
+            </if>
+            <if test="petimageurl != null" >
+                petImageUrl = #{petimageurl,jdbcType=VARCHAR},
+            </if>
+            <if test="vaccineid != null" >
+                vaccineId = #{vaccineid,jdbcType=CHAR},
+            </if>
+            <if test="operationid != null" >
+                operationid = #{operationid,jdbcType=INTEGER},
+            </if>
+            <if test="operationtime != null" >
+                operationtime = #{operationtime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="zfflag != null" >
+                ZFflag = #{zfflag,jdbcType=CHAR},
+            </if>
+        </set>
+        where unionid = #{unionid,jdbcType=INTEGER}
+    </update>
+
+</mapper>

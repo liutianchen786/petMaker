@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.luke.dao.PetVaccineMapper" >
+<!--  <cache type="com.luke.util.RedisCache" />-->
+    <resultMap id="BaseResultMap" type="com.luke.model.PetVaccine" >
+        <result column="vaccineId" property="vaccineid" jdbcType="INTEGER" />
+        <result column="vaccineName" property="vaccinename" jdbcType="VARCHAR" />
+        <result column="operationid" property="operationid" jdbcType="INTEGER" />
+        <result column="operationtime" property="operationtime" jdbcType="TIMESTAMP" />
+        <result column="ZFflag" property="zfflag" jdbcType="CHAR" />
+    </resultMap>
+
+
+
+    <insert id="insertSelective" parameterType="com.luke.model.PetVaccine" >
+        insert into pet_vaccine
+        <trim prefix="(" suffix=")" suffixOverrides="," >
+            <if test="vaccineid != null" >
+                vaccineId,
+            </if>
+            <if test="vaccinename != null" >
+                vaccineName,
+            </if>
+            <if test="operationid != null" >
+                operationid,
+            </if>
+            <if test="operationtime != null" >
+                operationtime,
+            </if>
+            <if test="zfflag != null" >
+                ZFflag,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides="," >
+            <if test="vaccineid != null" >
+                #{vaccineid,jdbcType=INTEGER},
+            </if>
+            <if test="vaccinename != null" >
+                #{vaccinename,jdbcType=VARCHAR},
+            </if>
+            <if test="operationid != null" >
+                #{operationid,jdbcType=INTEGER},
+            </if>
+            <if test="operationtime != null" >
+                #{operationtime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="zfflag != null" >
+                #{zfflag,jdbcType=CHAR},
+            </if>
+        </trim>
+    </insert>
+    <!-- 不符合关系型数据库的思想，可以废弃 -->
+    <select  id="selectVaccine" resultType="Map" parameterType="java.lang.String">
+    	SELECT
+			pt.vaccineName,
+			pt.vaccineId		
+			FROM
+						pet_vaccine pt
+			WHERE
+			
+			INSTR(
+			(
+				SELECT
+						vaccineId
+									FROM
+									 		pet_info
+									WHERE
+											pet_info.unionId = #{unionId,jdbcType=VARCHAR}
+									and 	
+											pet_info.ZFflag=0
+					),pt.vaccineId
+			)
+			AND
+					pt.ZFflag=0
+    </select>
+    <!-- 疫苗表和疫苗记录表关联 查出每个疫苗的状态 -->
+    <select id="selectPetVaccineState"  resultType="Map">
+    		select 
+    				pv.vaccineId,pv.vaccineName,ifnull(pvr.vaccineState,0) vaccineState,pvr.unionid
+    		from 
+    				pet_vaccine pv
+    		left	join
+    				pet_vaccine_record pvr
+    		on	
+    				pv.vaccineId= pvr.vaccineId
+    		and
+    				pvr.unionid=#{unionid}	
+       		where
+    				pv.ZFflag=0
+    </select>
+    <!-- 插入数据 -->
+    <insert id="insertPetVaccineState">
+    		insert into pet_vaccine_record(pet_vaccine_recordId,vaccineId,unionId,vaccineState,ZFflag)
+    		values
+        <foreach collection="list" item="item" index="index"  separator=",">  
+    		(UUID(),#{item.vaccineId} ,#{unionid},#{item.vaccineState},'0')
+    	</foreach>  
+    </insert>
+    
+    <update id="updatePetVaccineState" >
+      <foreach collection="list" item="item" index="index"  separator=";">  
+    		update 
+    			pet_vaccine_record
+    		set
+    			vaccineState = #{item.vaccineState}
+    		where
+    			unionid = #{unionid}
+    		and
+    			vaccineId= #{item.vaccineId}
+    </foreach> 
+
+    </update>
+    
+    
+</mapper>

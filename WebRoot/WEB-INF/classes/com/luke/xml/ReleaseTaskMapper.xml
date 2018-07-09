@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.luke.dao.ReleaseTaskMapper" >
+
+    <resultMap id="BaseResultMap" type="com.luke.model.ReleaseTask" >
+        <id column="aid" property="aid" jdbcType="INTEGER" />
+        <result column="unionid" property="unionid" jdbcType="VARCHAR" />
+        <result column="rname" property="rname" jdbcType="VARCHAR" />
+        <result column="contentDesc" property="contentdesc" jdbcType="VARCHAR" />
+        <result column="createTime" property="createtime" jdbcType="DATE" />
+        <result column="rimage" property="rimage" jdbcType="VARCHAR" />
+        <result column="rposition" property="rposition" jdbcType="VARCHAR" />
+        <result column="ranswered" property="ranswered" jdbcType="TINYINT" />
+        <result column="rlongitude" property="rlongitude" jdbcType="VARCHAR" />
+        <result column="rlatitude" property="rlatitude" jdbcType="VARCHAR" />
+        <result column="lastTime" property="lasttime" jdbcType="DATE" />
+        <result column="reserved" property="reserved" jdbcType="VARCHAR" />
+        <result column="reserved1" property="reserved1" jdbcType="VARCHAR" />
+    </resultMap>
+
+    <sql id="Base_Column_List" >
+        aid, unionid, rname, contentDesc, createTime, rimage, rposition, ranswered, rlongitude, 
+        rlatitude, lastTime, reserved, reserved1
+    </sql>
+
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+        select 
+        <include refid="Base_Column_List" />
+        from releasetask
+        where aid = #{aid,jdbcType=INTEGER}
+    </select>
+
+	<!-- 查询出已发起的任务 -->
+	<select id="selectAll" resultMap="BaseResultMap">
+		select u.nickname,u.avatarUrl,r.aid,r.rname,r.contentDesc,r.createTime,r.rimage,r.rposition,r.ranswered
+		r.longitude,r.rlatitude from releasrtask r,user u where r.ranswered = 0 order by r.aid desc
+	</select>
+
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+        delete from releasetask
+        where aid = #{aid,jdbcType=INTEGER}
+    </delete>
+
+    <insert id="insert" parameterType="com.luke.model.ReleaseTask" >
+        insert into releasetask (aid, unionid, rname, 
+            contentDesc, createTime, rimage, 
+            rposition, ranswered, rlongitude, 
+            rlatitude, lastTime, reserved, 
+            reserved1)
+        values (#{aid,jdbcType=INTEGER}, #{unionid,jdbcType=VARCHAR}, #{rname,jdbcType=VARCHAR}, 
+            #{contentdesc,jdbcType=VARCHAR}, #{createtime,jdbcType=DATE}, #{rimage,jdbcType=VARCHAR}, 
+            #{rposition,jdbcType=VARCHAR}, #{ranswered,jdbcType=TINYINT}, #{rlongitude,jdbcType=VARCHAR}, 
+            #{rlatitude,jdbcType=VARCHAR}, #{lasttime,jdbcType=DATE}, #{reserved,jdbcType=VARCHAR}, 
+            #{reserved1,jdbcType=VARCHAR})
+    </insert>
+
+    <insert id="insertSelective" parameterType="com.luke.model.ReleaseTask" >
+        insert into releasetask
+        <trim prefix="(" suffix=")" suffixOverrides="," >
+            <if test="aid != null" >
+                aid,
+            </if>
+            <if test="unionid != null" >
+                unionid,
+            </if>
+            <if test="rname != null" >
+                rname,
+            </if>
+            <if test="contentdesc != null" >
+                contentDesc,
+            </if>
+            <if test="createtime != null" >
+                createTime,
+            </if>
+            <if test="rimage != null" >
+                rimage,
+            </if>
+            <if test="rposition != null" >
+                rposition,
+            </if>
+            <if test="ranswered != null" >
+                ranswered,
+            </if>
+            <if test="rlongitude != null" >
+                rlongitude,
+            </if>
+            <if test="rlatitude != null" >
+                rlatitude,
+            </if>
+            <if test="lasttime != null" >
+                lastTime,
+            </if>
+            <if test="reserved != null" >
+                reserved,
+            </if>
+            <if test="reserved1 != null" >
+                reserved1,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides="," >
+            <if test="aid != null" >
+                #{aid,jdbcType=INTEGER},
+            </if>
+            <if test="unionid != null" >
+                #{unionid,jdbcType=VARCHAR},
+            </if>
+            <if test="rname != null" >
+                #{rname,jdbcType=VARCHAR},
+            </if>
+            <if test="contentdesc != null" >
+                #{contentdesc,jdbcType=VARCHAR},
+            </if>
+            <if test="createtime != null" >
+                #{createtime,jdbcType=DATE},
+            </if>
+            <if test="rimage != null" >
+                #{rimage,jdbcType=VARCHAR},
+            </if>
+            <if test="rposition != null" >
+                #{rposition,jdbcType=VARCHAR},
+            </if>
+            <if test="ranswered != null" >
+                #{ranswered,jdbcType=TINYINT},
+            </if>
+            <if test="rlongitude != null" >
+                #{rlongitude,jdbcType=VARCHAR},
+            </if>
+            <if test="rlatitude != null" >
+                #{rlatitude,jdbcType=VARCHAR},
+            </if>
+            <if test="lasttime != null" >
+                #{lasttime,jdbcType=DATE},
+            </if>
+            <if test="reserved != null" >
+                #{reserved,jdbcType=VARCHAR},
+            </if>
+            <if test="reserved1 != null" >
+                #{reserved1,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.luke.model.ReleaseTask" >
+        update releasetask
+        <set >
+            <if test="unionid != null" >
+                unionid = #{unionid,jdbcType=VARCHAR},
+            </if>
+            <if test="rname != null" >
+                rname = #{rname,jdbcType=VARCHAR},
+            </if>
+            <if test="contentdesc != null" >
+                contentDesc = #{contentdesc,jdbcType=VARCHAR},
+            </if>
+            <if test="createtime != null" >
+                createTime = #{createtime,jdbcType=DATE},
+            </if>
+            <if test="rimage != null" >
+                rimage = #{rimage,jdbcType=VARCHAR},
+            </if>
+            <if test="rposition != null" >
+                rposition = #{rposition,jdbcType=VARCHAR},
+            </if>
+            <if test="ranswered != null" >
+                ranswered = #{ranswered,jdbcType=TINYINT},
+            </if>
+            <if test="rlongitude != null" >
+                rlongitude = #{rlongitude,jdbcType=VARCHAR},
+            </if>
+            <if test="rlatitude != null" >
+                rlatitude = #{rlatitude,jdbcType=VARCHAR},
+            </if>
+            <if test="lasttime != null" >
+                lastTime = #{lasttime,jdbcType=DATE},
+            </if>
+            <if test="reserved != null" >
+                reserved = #{reserved,jdbcType=VARCHAR},
+            </if>
+            <if test="reserved1 != null" >
+                reserved1 = #{reserved1,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where aid = #{aid,jdbcType=INTEGER}
+    </update>
+
+    <update id="updateByPrimaryKey" parameterType="com.luke.model.ReleaseTask" >
+        update releasetask
+        set unionid = #{unionid,jdbcType=VARCHAR},
+            rname = #{rname,jdbcType=VARCHAR},
+            contentDesc = #{contentdesc,jdbcType=VARCHAR},
+            createTime = #{createtime,jdbcType=DATE},
+            rimage = #{rimage,jdbcType=VARCHAR},
+            rposition = #{rposition,jdbcType=VARCHAR},
+            ranswered = #{ranswered,jdbcType=TINYINT},
+            rlongitude = #{rlongitude,jdbcType=VARCHAR},
+            rlatitude = #{rlatitude,jdbcType=VARCHAR},
+            lastTime = #{lasttime,jdbcType=DATE},
+            reserved = #{reserved,jdbcType=VARCHAR},
+            reserved1 = #{reserved1,jdbcType=VARCHAR}
+        where aid = #{aid,jdbcType=INTEGER}
+    </update>
+</mapper>

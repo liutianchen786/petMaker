@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.luke.dao.UserCirclelikeRecordMapper" >
+
+    <resultMap id="BaseResultMap" type="com.luke.model.UserCirclelikeRecord" >
+        <id column="userCircleRecordId" property="usercirclerecordid" jdbcType="VARCHAR" />
+        <result column="unionId" property="unionid" jdbcType="VARCHAR" />
+        <result column="circleId" property="circleid" jdbcType="INTEGER" />
+        <result column="isLike" property="islike" jdbcType="CHAR" />
+        <result column="opreationId" property="opreationid" jdbcType="VARCHAR" />
+        <result column="opreationTime" property="opreationtime" jdbcType="TIMESTAMP" />
+        <result column="ZFflag" property="zfflag" jdbcType="CHAR" />
+    </resultMap>
+
+    <sql id="Base_Column_List" >
+        userCircleRecordId, unionId, circleId, isLike, opreationId, opreationTime, ZFflag
+    </sql>
+
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String" >
+        select 
+        <include refid="Base_Column_List" />
+        from user_circlelike_record
+        where userCircleRecordId = #{usercirclerecordid,jdbcType=VARCHAR}
+    </select>
+
+	<!-- 查询关注的圈子 -->
+	<select id='selectcircle' resultType="map">
+		select uclr.circleId,uclr.isLike,c.cname,c.cDesc,c.circleimage,d.count from (((user_circlelike_record uclr
+		LEFT JOIN user u on u.unionId = uclr.unionId)
+		LEFT JOIN(select count(1) count,ucr.circleId ucrid 
+		from message m,user_circle_record ucr 
+		where ucr.circleId = m.circleId
+		and ucr.ExitTime &lt;= m.messTime
+		GROUP BY ucr.circleId) d on d.ucrid = uclr.circleId)
+		LEFT JOIN circle c on c.circleid = uclr.circleId)
+		where uclr.isLike = 1 and u.unionId = #{unionid,jdbcType=VARCHAR};
+	</select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
+        delete from user_circlelike_record
+        where userCircleRecordId = #{usercirclerecordid,jdbcType=VARCHAR}
+    </delete>
+
+    <insert id="insert" parameterType="com.luke.model.UserCirclelikeRecord" >
+        insert into user_circlelike_record (userCircleRecordId, unionId, circleId, 
+            isLike, opreationId, opreationTime, 
+            ZFflag)
+        values (#{usercirclerecordid,jdbcType=VARCHAR}, #{unionid,jdbcType=VARCHAR}, #{circleid,jdbcType=INTEGER}, 
+            #{islike,jdbcType=CHAR}, #{opreationid,jdbcType=VARCHAR}, #{opreationtime,jdbcType=TIMESTAMP}, 
+            #{zfflag,jdbcType=CHAR})
+    </insert>
+
+    <insert id="insertSelective" parameterType="com.luke.model.UserCirclelikeRecord" >
+        insert into user_circlelike_record
+        <trim prefix="(" suffix=")" suffixOverrides="," >
+            <if test="usercirclerecordid != null" >
+                userCircleRecordId,
+            </if>
+            <if test="unionid != null" >
+                unionId,
+            </if>
+            <if test="circleid != null" >
+                circleId,
+            </if>
+            <if test="islike != null" >
+                isLike,
+            </if>
+            <if test="opreationid != null" >
+                opreationId,
+            </if>
+            <if test="opreationtime != null" >
+                opreationTime,
+            </if>
+            <if test="zfflag != null" >
+                ZFflag,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides="," >
+            <if test="usercirclerecordid != null" >
+                #{usercirclerecordid,jdbcType=VARCHAR},
+            </if>
+            <if test="unionid != null" >
+                #{unionid,jdbcType=VARCHAR},
+            </if>
+            <if test="circleid != null" >
+                #{circleid,jdbcType=INTEGER},
+            </if>
+            <if test="islike != null" >
+                #{islike,jdbcType=CHAR},
+            </if>
+            <if test="opreationid != null" >
+                #{opreationid,jdbcType=VARCHAR},
+            </if>
+            <if test="opreationtime != null" >
+                #{opreationtime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="zfflag != null" >
+                #{zfflag,jdbcType=CHAR},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.luke.model.UserCirclelikeRecord" >
+        update user_circlelike_record
+        <set >
+            <if test="unionid != null" >
+                unionId = #{unionid,jdbcType=VARCHAR},
+            </if>
+            <if test="circleid != null" >
+                circleId = #{circleid,jdbcType=INTEGER},
+            </if>
+            <if test="islike != null" >
+                isLike = #{islike,jdbcType=CHAR},
+            </if>
+            <if test="opreationid != null" >
+                opreationId = #{opreationid,jdbcType=VARCHAR},
+            </if>
+            <if test="opreationtime != null" >
+                opreationTime = #{opreationtime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="zfflag != null" >
+                ZFflag = #{zfflag,jdbcType=CHAR},
+            </if>
+        </set>
+        where userCircleRecordId = #{usercirclerecordid,jdbcType=VARCHAR}
+    </update>
+
+    <update id="updateByPrimaryKey" parameterType="com.luke.model.UserCirclelikeRecord" >
+        update user_circlelike_record
+        set unionId = #{unionid,jdbcType=VARCHAR},
+            circleId = #{circleid,jdbcType=INTEGER},
+            isLike = #{islike,jdbcType=CHAR},
+            opreationId = #{opreationid,jdbcType=VARCHAR},
+            opreationTime = #{opreationtime,jdbcType=TIMESTAMP},
+            ZFflag = #{zfflag,jdbcType=CHAR}
+        where userCircleRecordId = #{usercirclerecordid,jdbcType=VARCHAR}
+    </update>
+</mapper>

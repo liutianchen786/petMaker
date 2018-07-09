@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.luke.dao.CommentsMapper" >
+
+    <resultMap id="BaseResultMap" type="com.luke.model.Comments" >
+        <id column="commid" property="commid" jdbcType="INTEGER" />
+        <result column="content" property="content" jdbcType="VARCHAR" />
+        <result column="createtime" property="createtime" jdbcType="TIMESTAMP" />
+        <result column="mid" property="mid" jdbcType="INTEGER" />
+        <result column="unionid" property="unionid" jdbcType="VARCHAR" />
+        <result column="messunionid" property="messunionid" jdbcType="VARCHAR" />
+        <result column="pid" property="pid" jdbcType="INTEGER" />
+        <result column="name" property="name" jdbcType="VARCHAR" />
+    </resultMap>
+    
+    <sql id="Base_Column_List" >
+        commid, content, createtime, mid, unionid, messunionid, pid
+    </sql>
+
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+        select 
+        <include refid="Base_Column_List" />
+        from comments
+        where commid = #{commid,jdbcType=INTEGER}
+    </select>
+	
+	<select id="selectCommid" resultType="Map">
+		select <include refid="Base_Column_List" />
+		from comments where pid!=0
+		and mid = #{mid,jdbcType=INTEGER}
+	</select>
+	
+	<select id="selectPid" resultType="Map">
+		select c.commid,c.content,c.createtime,c.mid,c.unionid,c.messunionid,c.pid
+		u.nickname,u.avatarurl from comments c,user u 
+		where c.unionid = u.unionid and pid = #{commid,jdbcType=INTEGER}
+	</select>
+
+	
+	<!-- 根据mid查询用户名，用户名称，评论内容，评论的时间 -->
+	<select id="selectByMid" resultType="Map">
+		select u.nickname,u.avatarUrl,c.content,c.createTime from 
+		comments c inner JOIN user u ON c.unionid = u.unionId
+		where c.mid = #{mid,jdbcType=INTEGER}
+	</select>
+	
+	<!-- 根据mid回复评论 -->
+	<select id="selectreply" resultType="Map">
+		select 
+			a.id,
+			a.mid,
+			a.pid,
+			a.u1,
+			a.u2,
+			a.content,
+			a.content2,
+			a.nickname,
+			a.avatarUrl,
+			date_format(a.createtime,'%c月%e日 %H:%i') createtime,
+			u.nickname name,
+			u.state state,
+			a.state state2
+			from user u right 
+		JOIN 
+		(select 
+			c1.commid id,
+			c1.mid mid,
+			c1.pid pid,
+			c1.unionid u1,
+			c2.unionid u2,
+			c1.content content,
+			c2.content content2,
+			u.nickname nickname,
+			u.avatarUrl avatarUrl,
+			c1.createtime createtime,
+			u.state
+		from ((comments c1
+			left JOIN comments c2 on c1.pid = c2.commid)
+			left JOIN user u on c1.unionid = u.unionid)) a
+		on u.unionId = a.u2
+			where a.mid = #{mid,jdbcType=INTEGER}
+				order by a.pid,a.id asc
+		
+	</select>
+	
+	<select id="selectReplyContat" resultType="Map">
+	<!-- 
+		select a.plnickname plnickname,
+			   a.plavatarUrl plavatarUrl,
+			   a.plcommid plcommid,
+			   a.plpid plpid,
+			   a.plcontent plcontent,
+			   a.plcreatetime plcreatetime,
+			   group_concat(a.hfnickname) hfnickname,
+		       group_concat(a.hfavatarUrl)  hfavatarUrl,
+			   group_concat(a.hfcommid) hfcommid,
+			   group_concat(a.hfpid) hfpid,
+			   group_concat(a.hfcontent ) hfcontent,
+			   group_concat(a.hfcreatetime) hfhfcreatetime
+		 from 
+ 		(select pl.nickname plnickname,
+			  pl.avatarUrl plavatarUrl,
+			  pl.commid plcommid,
+			  pl.pid plpid,
+			  pl.content plcontent,
+			  pl.createtime plcreatetime,
+		 	  hf.nickname hfnickname,
+			  hf.avatarUrl hfavatarUrl,
+			  hf.commid hfcommid,
+			  hf.pid hfpid,
+			  hf.content hfcontent,
+			  hf.createtime hfcreatetime
+		from 
+		(select 
+			user.nickname nickname,user.avatarUrl avatarUrl,comments.commid commid,comments.pid pid,comments.content content,
+			comments.createtime createtime
+		from 
+			comments 
+		left join
+			user 
+		on 
+			comments.unionid = user. unionid
+		where 
+			comments.pid = 0
+		and  comments.mid =  #{mid,jdbcType=INTEGER}) pl
+		left join
+		(select 
+			user.nickname nickname,user.avatarUrl avatarUrl,comments.commid commid,comments.pid pid,comments.content content,
+			comments.createtime createtime
+		from 
+			comments 
+		left join
+			user 
+		on 
+			comments.unionid = user. unionid
+		where 
+			comments.pid !=0
+		and  comments.mid =  #{mid,jdbcType=INTEGER}) hf
+		on 
+			pl.commid = hf.pid
+		order by 
+			pl.commid asc) a
+		group by 
+			a.plcommid 
+ -->	
+ 		select pl.nickname plnickname,
+			  pl.avatarUrl plavatarUrl,
+			  pl.commid plcommid,
+			  pl.pid plpid,
+			  pl.content plcontent,
+			  pl.createtime plcreatetime,
+		 	  hf.nickname hfnickname,
+			  hf.avatarUrl hfavatarUrl,
+			  hf.commid hfcommid,
+			  hf.pid hfpid,
+			  hf.content hfcontent,
+			  hf.createtime hfcreatetime
+		from 
+		(select 
+			user.nickname nickname,user.avatarUrl avatarUrl,comments.commid commid,comments.pid pid,comments.content content,
+			comments.createtime createtime
+		from 
+			comments 
+		left join
+			user 
+		on 
+			comments.unionid = user. unionid
+		where 
+			comments.pid = 0
+		and  comments.mid =  #{mid,jdbcType=INTEGER}) pl
+		left join
+		(select 
+			user.nickname nickname,user.avatarUrl avatarUrl,comments.commid commid,comments.pid pid,comments.content content,
+			comments.createtime createtime
+		from 
+			comments 
+		left join
+			user 
+		on 
+			comments.unionid = user. unionid
+		where 
+			comments.pid !=0
+		and  comments.mid =  #{mid,jdbcType=INTEGER}) hf
+		on 
+			pl.commid = hf.pid
+		order by 
+			pl.commid asc
+ 
+	</select>
+	
+	
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+        delete from comments
+        where commid = #{commid,jdbcType=INTEGER}
+    </delete>
+
+    <insert id="insert" parameterType="com.luke.model.Comments" >
+        insert into comments (commid, content, createtime, 
+            mid, unionid, messunionid, 
+            pid)
+        values (#{commid,jdbcType=INTEGER}, #{content,jdbcType=VARCHAR}, #{createtime,jdbcType=TIMESTAMP}, 
+            #{mid,jdbcType=INTEGER}, #{unionid,jdbcType=VARCHAR}, #{messunionid,jdbcType=VARCHAR}, 
+            #{pid,jdbcType=INTEGER})
+    </insert>
+
+    <insert id="insertSelective" parameterType="com.luke.model.Comments" >
+        insert into comments
+        <trim prefix="(" suffix=")" suffixOverrides="," >
+            <if test="commid != null" >
+                commid,
+            </if>
+            <if test="content != null" >
+                content,
+            </if>
+            <if test="createtime != null" >
+                createtime,
+            </if>
+            <if test="mid != null" >
+                mid,
+            </if>
+            <if test="unionid != null" >
+                unionid,
+            </if>
+            <if test="messunionid != null" >
+                messunionid,
+            </if>
+            <if test="pid != null" >
+                pid,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides="," >
+            <if test="commid != null" >
+                #{commid,jdbcType=INTEGER},
+            </if>
+            <if test="content != null" >
+                #{content,jdbcType=VARCHAR},
+            </if>
+            <if test="createtime != null" >
+                #{createtime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="mid != null" >
+                #{mid,jdbcType=INTEGER},
+            </if>
+            <if test="unionid != null" >
+                #{unionid,jdbcType=VARCHAR},
+            </if>
+            <if test="messunionid != null" >
+                #{messunionid,jdbcType=VARCHAR},
+            </if>
+            <if test="pid != null" >
+                #{pid,jdbcType=INTEGER},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.luke.model.Comments" >
+        update comments
+        <set >
+            <if test="content != null" >
+                content = #{content,jdbcType=VARCHAR},
+            </if>
+            <if test="createtime != null" >
+                createtime = #{createtime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="mid != null" >
+                mid = #{mid,jdbcType=INTEGER},
+            </if>
+            <if test="unionid != null" >
+                unionid = #{unionid,jdbcType=VARCHAR},
+            </if>
+            <if test="messunionid != null" >
+                messunionid = #{messunionid,jdbcType=VARCHAR},
+            </if>
+            <if test="pid != null" >
+                pid = #{pid,jdbcType=INTEGER},
+            </if>
+        </set>
+        where commid = #{commid,jdbcType=INTEGER}
+    </update>
+
+    <update id="updateByPrimaryKey" parameterType="com.luke.model.Comments" >
+        update comments
+        set content = #{content,jdbcType=VARCHAR},
+            createtime = #{createtime,jdbcType=TIMESTAMP},
+            mid = #{mid,jdbcType=INTEGER},
+            unionid = #{unionid,jdbcType=VARCHAR},
+            messunionid = #{messunionid,jdbcType=VARCHAR},
+            pid = #{pid,jdbcType=INTEGER}
+        where commid = #{commid,jdbcType=INTEGER}
+    </update>
+</mapper>

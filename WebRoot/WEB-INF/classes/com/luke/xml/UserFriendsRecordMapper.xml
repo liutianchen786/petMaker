@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.luke.dao.UserFriendsRecordMapper" >
+
+    <resultMap id="BaseResultMap" type="com.luke.model.UserFriendsRecord" >
+        <id column="userFriendsId" property="userfriendsid" jdbcType="INTEGER" />
+        <result column="unionId" property="unionid" jdbcType="VARCHAR" />
+        <result column="friendsUnionId" property="friendsunionid" jdbcType="VARCHAR" />
+        <result column="operationid" property="operationid" jdbcType="VARCHAR" />
+        <result column="operationtime" property="operationtime" jdbcType="TIMESTAMP" />
+        <result column="flag" property="flag" jdbcType="CHAR" />
+    </resultMap>
+
+    <sql id="Base_Column_List" >
+        userFriendsId, unionId, friendsUnionId, operationid, operationtime, flag
+    </sql>
+
+	
+	<!-- 查询用户下的好友信息 -->
+	<select id="selectFriendsNews" resultType="map">
+		<!-- select u.nickname nickname,u.avatarUrl avatarUrl from user_friends_record f,user u where f.friendsUnionId = u.unionId
+		and f.flag = 1
+		and f.unionId = #{unionid,jdbcType=VARCHAR} -->
+		
+		select s.id,s.nickname,s.unionId,s.avatarUrl,s.vip,max(s.messTime),s.messdesc
+		from 
+		(select f.userFriendsId id,u.unionId unionId,u.nickname nickname,u.avatarUrl avatarUrl,u.state vip,m.messDesc  messdesc,m.messTime messTime 
+		from ((user_friends_record f 
+		LEFT JOIN user u on f.friendsUnionId = u.unionId)
+		LEFT JOIN message m on m.unionid = f.friendsUnionId)
+		where f.flag=1
+		and f.unionId = #{unionid,jdbcType=VARCHAR}
+		ORDER BY m.messTime desc) s
+		group by s.nickname
+	</select>
+
+	<!-- 更新flag 好友状态-->
+	<update id="updateFlag" parameterType="com.luke.model.UserFriendsRecord">
+		update 
+				user_friends_record
+		set 
+				flag = #{flag}
+		where
+				unionid=#{unionid}
+		and
+				friendsUnionId=#{friendsunionid}
+	</update>
+	
+	<!-- 查询表里存不存在当前的信息
+	<select id="selectExeit" resultType="Map">
+		select friendsUnionId from user_friends_record where unionid = #{unionid,jdbcType=VARCHAR}
+	</select>
+
+ -->
+    <insert id="insert" parameterType="com.luke.model.UserFriendsRecord" >
+        insert into user_friends_record (userFriendsId, unionId, friendsUnionId, 
+            operationid, operationtime, flag
+            )
+        values (#{userfriendsid,jdbcType=INTEGER}, #{unionid,jdbcType=VARCHAR}, #{friendsunionid,jdbcType=VARCHAR}, 
+            #{operationid,jdbcType=VARCHAR}, #{operationtime,jdbcType=TIMESTAMP}, #{flag,jdbcType=CHAR}
+            )
+    </insert>
+    <insert id="insertSelective" parameterType="com.luke.model.UserFriendsRecord" >
+        insert into user_friends_record
+        <trim prefix="(" suffix=")" suffixOverrides="," >
+            <if test="userfriendsid != null" >
+            </if>
+            <if test="unionid != null" >
+                unionId,
+            </if>
+            <if test="friendsunionid != null" >
+                friendsUnionId,
+            </if>
+            <if test="operationid != null" >
+                operationid,
+            </if>
+            <if test="operationtime != null" >
+                operationtime,
+            </if>
+            <if test="flag != null" >
+                flag,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides="," >
+            <if test="userfriendsid != null" >
+                #{userfriendsid,jdbcType=INTEGER},
+            </if>
+            <if test="unionid != null" >
+                #{unionid,jdbcType=VARCHAR},
+            </if>
+            <if test="friendsunionid != null" >
+                #{friendsunionid,jdbcType=VARCHAR},
+            </if>
+            <if test="operationid != null" >
+                #{operationid,jdbcType=VARCHAR},
+            </if>
+            <if test="operationtime != null" >
+                #{operationtime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="flag != null" >
+                #{flag,jdbcType=CHAR},
+            </if>
+        </trim>
+    </insert>
+</mapper>

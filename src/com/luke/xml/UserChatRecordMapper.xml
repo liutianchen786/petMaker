@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.luke.dao.UserChatRecordMapper" >
+
+    <resultMap id="BaseResultMap" type="com.luke.model.UserChatRecord" >
+        <id column="chatId" property="chatId" jdbcType="INTEGER" />
+        <result column="sendUnionId" property="sendUnionId" jdbcType="VARCHAR" />
+        <result column="toUnionId" property="toUnionId" jdbcType="VARCHAR" />
+        <result column="content" property="content" jdbcType="LONGVARCHAR" />
+        <result column="chatTime" property="chatTime" jdbcType="TIMESTAMP" />
+        <result column="operationid" property="operationid" jdbcType="INTEGER" />
+        <result column="opertaiontime" property="opertaiontime" jdbcType="TIMESTAMP" />
+        <result column="ZFflag" property="ZFflag" jdbcType="CHAR" />
+        <result column="chatstate" property="chatstate" jdbcType="CHAR" />
+    </resultMap>
+
+    <sql id="Base_Column_List" >
+        chatId, sendUnionId, toUnionId, content, chatTime, operationid, opertaiontime, ZFflag, 
+        chatstate
+    </sql>
+
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+        select 
+        <include refid="Base_Column_List" />
+        from user_chat_record
+        where chatId = #{chatid,jdbcType=INTEGER}
+    </select>
+	
+	<!-- 查询两个人的聊天记录  
+	u1id是发送消息人unionid，u1name是发送人的name，u2id是接收人的unionid，u2name是接收人的name -->
+	<select id="selectOneToOne" resultType="Map">
+		select u1.unionId u1id,
+		u1.nickname u1name,
+		u1.avatarUrl avatarUrl1,
+		u2.unionid u2id,
+		u2.nickname u2name,
+		u2.avatarUrl avatarUrl2,
+		ucr.chatId,ucr.content,
+		if(timestampdiff(hour,ucr.chatTime,DATE_FORMAT(CURDATE(),'%Y-%m-%d %H:%i:%s')) &gt;= 1,ucr.chatTime,date_format(ucr.chatTime,"%H:%i")) chatTime
+		from ((user_chat_record ucr
+		LEFT JOIN user u1 on ucr.sendUnionId = u1.unionId)
+		LEFT JOIN user u2 on ucr.toUnionId = u2.unionId) 
+		where (sendUnionId=#{sendUnionId,jdbcType=VARCHAR} and toUnionId=#{toUnionId,jdbcType=VARCHAR}) 
+		or (sendUnionId=#{toUnionId,jdbcType=VARCHAR} and toUnionId=#{sendUnionId,jdbcType=VARCHAR})
+		order by ucr.chatTime desc limit 6
+	</select>
+		
+	<!-- 查询聊天人 -->
+	<select id="selectChatMen" resultType="Map">
+		
+		<!-- SELECT ucr.uid,ucr.chatId,ucr.sendUnionId,ucr.chatTime,ucr.content,u.avatarUrl,u.nickname FROM 
+		( SELECT toUnionId as uid,ucr.chatId,ucr.sendUnionId,ucr.toUnionId,ucr.content,ucr.chatTime,ucr.ZFflag,
+		ucr.chatstate
+		 FROM user_chat_record ucr WHERE sendUnionId = #{sendUnionId,jdbcType=VARCHAR} 
+        UNION 
+  		SELECT sendUnionId as uid,
+  		ucr.chatId,ucr.sendUnionId,ucr.toUnionId,ucr.content,ucr.chatTime,ucr.ZFflag,
+		ucr.chatstate
+  		 FROM user_chat_record ucr WHERE toUnionId = #{sendUnionId,jdbcType=VARCHAR} 
+		ORDER BY chatTime desc
+		) ucr,user u
+		where u.unionid = ucr.uid
+		GROUP BY ucr.uid -->
+		
+		
+		SELECT ct.uid,ct.chatId,ct.sendUnionId,ct.chatTime,ct.content,ct.avatarUrl,ct.nickname,ct.state,IFNULL(chat1.flag,0) flag FROM 
+		
+		(SELECT ucr.uid,ucr.chatId,ucr.sendUnionId,ucr.chatTime,ucr.content,u.avatarUrl,u.nickname,u.state FROM 
+		( SELECT toUnionId as uid,ucr.chatId,ucr.sendUnionId,ucr.toUnionId,ucr.content,ucr.chatTime,ucr.ZFflag,
+		ucr.chatstate
+		 FROM user_chat_record ucr WHERE sendUnionId = #{sendUnionId,jdbcType=VARCHAR}
+        UNION 
+  		SELECT sendUnionId as uid,
+  		ucr.chatId,ucr.sendUnionId,ucr.toUnionId,ucr.content,ucr.chatTime,ucr.ZFflag,
+		ucr.chatstate
+  		 FROM user_chat_record ucr WHERE toUnionId = #{sendUnionId,jdbcType=VARCHAR}
+		ORDER BY chatTime desc
+		) ucr,user u
+		where u.unionid = ucr.uid
+		GROUP BY ucr.uid) ct
+		LEFT JOIN 
+		(SELECT count(1) flag,sendUnionId,toUnionId,chatState from user_chat_record 
+		where chatState = 1 and toUnionId = #{sendUnionId,jdbcType=VARCHAR} GROUP BY sendUnionId) chat1
+		on chat1.sendUnionId = ct.uid
+	</select>
+	
+	
+	<update id="updateChatState" parameterType="com.luke.model.UserChatRecord">
+		update user_chat_record
+		set
+            chatstate = 0
+        where ((sendUnionId = #{sendUnionId,jdbcType=VARCHAR}
+        and toUnionId = #{toUnionId,jdbcType=VARCHAR} )
+        or (toUnionId = #{sendUnionId,jdbcType=VARCHAR}
+        and sendUnionId = #{toUnionId,jdbcType=VARCHAR} ))
+	</update>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+        delete from user_chat_record
+        where chatId = #{chatid,jdbcType=INTEGER}
+    </delete>
+
+    <insert id="insert" parameterType="com.luke.model.UserChatRecord" >
+        insert into user_chat_record (chatId, sendUnionId, toUnionId, 
+            content, chatTime, operationid, 
+            opertaiontime, ZFflag, chatstate
+            )
+        values (#{chatId,jdbcType=INTEGER}, #{sendUnionId,jdbcType=VARCHAR}, #{toUnionId,jdbcType=VARCHAR}, 
+            #{content,jdbcType=LONGVARCHAR}, #{chatTime,jdbcType=TIMESTAMP}, #{operationid,jdbcType=INTEGER}, 
+            #{opertaiontime,jdbcType=TIMESTAMP}, #{ZFflag,jdbcType=CHAR}, #{chatstate,jdbcType=CHAR}
+            )
+    </insert>
+
+    <insert id="insertSelective" parameterType="com.luke.model.UserChatRecord" >
+        insert into user_chat_record
+        <trim prefix="(" suffix=")" suffixOverrides="," >
+            <if test="chatId != null" >
+                chatId,
+            </if>
+            <if test="sendUnionId != null" >
+                sendUnionId,
+            </if>
+            <if test="toUnionId != null" >
+                toUnionId,
+            </if>
+            <if test="content != null" >
+                content,
+            </if>
+            <if test="chatTime != null" >
+                chatTime,
+            </if>
+            <if test="operationid != null" >
+                operationid,
+            </if>
+            <if test="opertaiontime != null" >
+                opertaiontime,
+            </if>
+            <if test="ZFflag != null" >
+                ZFflag,
+            </if>
+            <if test="chatstate != null" >
+                chatstate,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides="," >
+            <if test="chatId != null" >
+                #{chatId,jdbcType=INTEGER},
+            </if>
+            <if test="sendUnionId != null" >
+                #{sendUnionId,jdbcType=VARCHAR},
+            </if>
+            <if test="toUnionId != null" >
+                #{toUnionId,jdbcType=VARCHAR},
+            </if>
+            <if test="content != null" >
+                #{content,jdbcType=LONGVARCHAR},
+            </if>
+            <if test="chatTime != null" >
+                #{chatTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="operationid != null" >
+                #{operationid,jdbcType=INTEGER},
+            </if>
+            <if test="opertaiontime != null" >
+                #{opertaiontime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="ZFflag != null" >
+                #{ZFflag,jdbcType=CHAR},
+            </if>
+            <if test="chatstate != null" >
+                #{chatstate,jdbcType=CHAR},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.luke.model.UserChatRecord" >
+        update user_chat_record
+        <set >
+            <if test="sendUnionId != null" >
+                sendUnionId = #{sendUnionId,jdbcType=VARCHAR},
+            </if>
+            <if test="toUnionId != null" >
+                toUnionId = #{toUnionId,jdbcType=VARCHAR},
+            </if>
+            <if test="content != null" >
+                content = #{content,jdbcType=LONGVARCHAR},
+            </if>
+            <if test="chatTime != null" >
+                chatTime = #{chatTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="operationid != null" >
+                operationid = #{operationid,jdbcType=INTEGER},
+            </if>
+            <if test="opertaiontime != null" >
+                opertaiontime = #{opertaiontime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="ZFflag != null" >
+                ZFflag = #{ZFflag,jdbcType=CHAR},
+            </if>
+            <if test="chatstate != null" >
+                chatstate = #{chatstate,jdbcType=CHAR},
+            </if>
+        </set>
+        where chatId = #{chatId,jdbcType=INTEGER}
+    </update>
+
+    <update id="updateByPrimaryKey" parameterType="com.luke.model.UserChatRecord" >
+        update user_chat_record
+        set sendUnionId = #{sendUnionId,jdbcType=VARCHAR},
+            toUnionId = #{toUnionId,jdbcType=VARCHAR},
+            content = #{content,jdbcType=LONGVARCHAR},
+            chatTime = #{chatTime,jdbcType=TIMESTAMP},
+            operationid = #{operationid,jdbcType=INTEGER},
+            opertaiontime = #{opertaiontime,jdbcType=TIMESTAMP},
+            ZFflag = #{ZFflag,jdbcType=CHAR},
+            chatstate = #{chatstate,jdbcType=CHAR}
+        where chatId = #{chatId,jdbcType=INTEGER}
+    </update>
+</mapper>

@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.luke.dao.GoodsInfoMapper" >
+
+    <resultMap id="BaseResultMap" type="com.luke.model.GoodsInfo" >
+        <id column="goodsId" property="goodsid" jdbcType="VARCHAR" />
+        <result column="goodsName" property="goodsname" jdbcType="VARCHAR" />
+        <result column="goodsTagsId" property="goodstagsid" jdbcType="VARCHAR" />
+        <result column="goodsDetails" property="goodsdetails" jdbcType="LONGVARCHAR" />
+        <result column="goodsExchangeNo" property="goodsexchangeno" jdbcType="INTEGER" />
+        <result column="goodsImageUrl" property="goodsimageurl" jdbcType="VARCHAR" />
+        <result column="goodsStock" property="goodsstock" jdbcType="INTEGER" />
+        <result column="goodsPrice" property="goodsprice" jdbcType="DECIMAL" />
+        <result column="operationId" property="operationid" jdbcType="VARCHAR" />
+        <result column="operationTime" property="operationtime" jdbcType="TIMESTAMP" />
+        <result column="ZFflag" property="zfflag" jdbcType="CHAR" />
+        <result column="goodsSpecificationId" property="goodsspecificationid" jdbcType="VARCHAR" />
+    </resultMap>
+    
+    <resultMap id="TagsMap" type="com.luke.model.GoodsTags" >
+        <id column="goodsTagsId" property="goodstagsid" jdbcType="INTEGER" />
+        <result column="goodsTagsName" property="goodstagsname" jdbcType="VARCHAR" />
+        <result column="operationId" property="operationid" jdbcType="VARCHAR" />
+        <result column="operationTime" property="operationtime" jdbcType="TIMESTAMP" />
+        <result column="ZFflag" property="zfflag" jdbcType="CHAR" />
+    </resultMap>
+
+   <sql id="Base_Column_List" >
+        goodsId, goodsName, goodsTagsId, goodsDetails, goodsExchangeNo, goodsImageUrl, goodsStock, 
+        goodsPrice, operationId, operationTime, ZFflag, goodsSpecificationId
+    </sql>
+    
+    
+    <sql id="bcl" >
+        goodsTagsId, goodsTagsName, operationId, operationTime, ZFflag
+    </sql>
+
+    <select id="selectGoods" resultType="map"  >
+         select 
+        	 gi.goodsId,gi.goodsName, gi.goodsTagsId, gi.goodsDetails, 
+        	 gi.goodsExchangeNo, gi.goodsImageUrl, gi.goodsStock, 
+       		 gi.goodsPrice, gi.operationId, gi.operationTime, gi.ZFflag, gi.goodsSpecificationId,
+			GROUP_CONCAT(user.backGroundId) backGroundId,
+			 count(ugo.unionid) count, GROUP_CONCAT(distinct goi.goodsIntroName,goi.goodsIntroDesc) goodsIntroDesc
+		 
+        from 
+        	goods_info gi
+		left join
+		    user_goods_orderRecord ugo
+		on 
+			gi.goodsId = ugo.goodsId
+		left join
+		    user
+		on
+			user.unionId = ugo.unionid
+		left join
+			goods_introduction  goi
+		on
+			gi.goodsId = goi.goodsId
+	    where 	
+        	gi.ZFflag = 0
+        <if test="goodsId!=null">
+        and
+       		gi.goodsId = #{gi.goodsId,jdbcType=VARCHAR}
+        </if>
+        <if test="goodsTagsId!=null">
+        and
+        	gi.goodsTagsId = #{gi.goodsTagsId,jdbcType=VARCHAR}
+        </if>
+       	group by 
+			gi.goodsId
+    </select>
+	
+	<select	id="selectAllTags" resultMap="TagsMap">
+		select
+		 <include refid="bcl" />
+		 from 
+		 		goods_tags
+		 where
+		 		ZFflag=0
+	
+	</select>
+	
+ 	<!-- 查询会员记录 -->
+	<select id="selectViP" resultType="map">
+		SELECT 
+			u.uid,
+			ugo.goodsOrderRecordId,
+			u.unionid,
+			u.nickname,
+			u.avatarUrl,
+			ugo.orderTime 
+		from ((user_goods_orderRecord ugo
+		LEFT JOIN
+			(SELECT ugo.goodsOrderRecordId,ugo.goodsId,ugo.deliveryAddressId,
+			ugo.unionid,ugo.orderState,ugo.orderTime,ugo.payTime,
+			ugo.sendTime,ugo.cancelTime,ugo.ZFflag
+			 from user_goods_orderRecord ugo
+				ORDER BY orderTime desc) ugos on 
+			ugos.unionid = ugo.unionid)
+		LEFT JOIN user u ON
+			u.unionId = ugo.unionid)
+		GROUP BY ugo.unionid
+	</select>
+ 
+</mapper>

@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.luke.dao.UserTaskMapper" >
+
+    <resultMap id="BaseResultMap" type="com.luke.model.UserTask" >
+        <id column="taskId" property="taskid" jdbcType="INTEGER" />
+        <result column="taskName" property="taskname" jdbcType="VARCHAR" />
+        <result column="taskScore" property="taskscore" jdbcType="INTEGER" />
+        <result column="taskType" property="tasktype" jdbcType="CHAR" />
+        <result column="doneOrNot" property="doneornot" jdbcType="CHAR" />
+        <result column="operationid" property="operationid" jdbcType="VARCHAR" />
+        <result column="operationTime" property="operationtime" jdbcType="TIMESTAMP" />
+        <result column="ZFflag" property="zfflag" jdbcType="CHAR" />
+    </resultMap>
+
+	<select id="selectUserTask" parameterType="java.lang.String" resultType="Map">
+			select  
+					user.nickname,
+					user.unionId,
+					user.money,
+					user_task.taskName,
+					user_task.taskScore,
+					user_task.taskId,
+					user_task_record.taskState
+			from
+					user
+			left join
+					user_task_record
+			on
+					user.unionId = user_task_record.unionid
+			left join
+					user_task
+			on
+					user_task_record.taskId = user_task.taskId
+			where
+					user.unionid= #{unionid}
+			and 
+					user.ZFflag =0
+	
+	</select>
+	<update id="updateUserSign" parameterType="java.lang.String">
+			update 
+					user_task
+			set
+					doneOrNot=1
+			where
+					ZFflag=0
+			and
+					unionid = #{unionid,jdbcType=VARCHAR}
+			and 	
+					taskName = #{taskName,jdbcType=VARCHAR}
+	</update>
+
+    <insert id="insertTask" parameterType="java.lang.String" >
+   		insert into 
+   			user_task_record
+   			(unionid,taskId,taskState)
+   		values
+   			(#{unionid},0,0),
+   			(#{unionid},1,0),
+   			(#{unionid},2,0),
+   			(#{unionid},3,0),
+   			(#{unionid},4,0),
+   			(#{unionid},5,0),
+   			(#{unionid},6,0),
+   			(#{unionid},7,0)
+    </insert>
+
+<!-- 定时更新任务表中tasktype = 0 的记录表state -->
+    <update id="updateUserTask" >
+			 update 
+					user_task_record uf,
+					user_task ut,
+					user u 
+			set 
+					uf.taskState=0
+					u.todayifsign=0
+			where
+					uf.taskId=ut.taskId
+			and 
+					ut.taskType= 0
+    </update>
+<!-- 更新签到任务 -->
+	<update id="updateUserAndTask" >
+		update user_task_record uf,
+			   user_task ut,
+			   user u 
+		set 
+			uf.taskState = '1',
+			u.continuousday = u.continuousday+1,
+			u.Todayifsign = '1',
+			u.money = u.money+(200<if test="state==1">*2</if>),
+			u.thisweekmoney = u.thisweekmoney+(200<if test="state==1">*2</if>)
+		where 
+        	 u.unionid = #{unionid,jdbcType=VARCHAR}
+       	and 
+       		 taskTypeId = 0
+		and
+       		 u.unionid= uf.unionid
+       	and 
+       	     uf.taskId = ut.taskId
+	</update>
+<!-- 更新除签到任务外的任务  -->
+    <update id="updateCompleteTsk" parameterType="java.lang.Object" >
+        update 
+        	user_task_record uf,
+        	user_task ut,
+        	user u
+        set 
+            uf.taskState = '1'
+        where
+        	 u.unionid = #{unionid,jdbcType=VARCHAR}
+       	and 
+       		 taskTypeId = #{taskTypeId,jdbcType=INTEGER}
+       	and
+       		 u.unionid= uf.unionid
+       	and 
+       	     uf.taskId = ut.taskId
+    </update>
+    
+ <!-- 用户签到界面的初始值  &lt;<        &gt;>    -->
+ 	<select id="selectUserSignDay" resultType="map">
+ 	select 
+ 			u.money,u.state,u.unionid,u.continuousday,GROUP_CONCAT(day(us.signtime)) signTime
+ 	from
+ 			user u
+ 	left join
+ 			u_signrecord us
+ 	on
+ 			u.unionid=us.unionid
+ 	and
+ 			date_sub(date_sub(date_format(now(),'%y-%m-%d'),interval extract(    
+   day from now()) day),interval 0 month)  &lt; date(us.signTime)
+ 	where
+ 			u.zfflag=0
+ 	and
+ 			u.unionid=#{unionid}
+ 	group by
+ 			u.unionid
+ 	</select>   
+    
+    
+    
+</mapper>

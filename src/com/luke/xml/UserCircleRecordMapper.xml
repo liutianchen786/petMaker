@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.luke.dao.UserCircleRecordMapper" >
+
+    <resultMap id="BaseResultMap" type="com.luke.model.UserCircleRecord" >
+        <id column="user_circle_recordId" property="userCircleRecordid" jdbcType="INTEGER" />
+        <result column="unionId" property="unionid" jdbcType="VARCHAR" />
+        <result column="circleId" property="circleid" jdbcType="INTEGER" />
+        <result column="ExitTime" property="exittime" jdbcType="TIMESTAMP" />
+        <result column="operationid" property="operationid" jdbcType="INTEGER" />
+        <result column="operationtime" property="operationtime" jdbcType="TIMESTAMP" />
+    </resultMap>
+
+    <sql id="Base_Column_List" >
+        user_circle_recordId, unionId, circleId, ExitTime, operationid, operationtime
+    </sql>
+
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+        select 
+        <include refid="Base_Column_List" />
+        from user_circle_record
+        where user_circle_recordId = #{userCircleRecordid,jdbcType=INTEGER}
+    </select>
+
+    <insert id="insert" parameterType="com.luke.model.UserCircleRecord" >
+        insert into user_circle_record (user_circle_recordId, unionId, circleId, 
+            ExitTime, operationid, operationtime
+            )
+        values (#{userCircleRecordid,jdbcType=INTEGER}, #{unionid,jdbcType=VARCHAR}, #{circleid,jdbcType=INTEGER}, 
+            #{exittime,jdbcType=TIMESTAMP}, #{operationid,jdbcType=INTEGER}, #{operationtime,jdbcType=TIMESTAMP}
+            )
+    </insert>
+
+    <insert id="insertSelective" parameterType="com.luke.model.UserCircleRecord" >
+        insert into user_circle_record
+        <trim prefix="(" suffix=")" suffixOverrides="," >
+            <if test="userCircleRecordid != null" >
+                user_circle_recordId,
+            </if>
+            <if test="unionid != null" >
+                unionId,
+            </if>
+            <if test="circleid != null" >
+                circleId,
+            </if>
+            <if test="exittime != null" >
+                ExitTime,
+            </if>
+            <if test="operationid != null" >
+                operationid,
+            </if>
+            <if test="operationtime != null" >
+                operationtime,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides="," >
+            <if test="userCircleRecordid != null" >
+                #{userCircleRecordid,jdbcType=INTEGER},
+            </if>
+            <if test="unionid != null" >
+                #{unionid,jdbcType=VARCHAR},
+            </if>
+            <if test="circleid != null" >
+                #{circleid,jdbcType=INTEGER},
+            </if>
+            <if test="exittime != null" >
+                #{exittime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="operationid != null" >
+                #{operationid,jdbcType=INTEGER},
+            </if>
+            <if test="operationtime != null" >
+                #{operationtime,jdbcType=TIMESTAMP},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.luke.model.UserCircleRecord" >
+        update user_circle_record
+        <set >
+            <if test="unionid != null" >
+                unionId = #{unionid,jdbcType=VARCHAR},
+            </if>
+            <if test="circleid != null" >
+                circleId = #{circleid,jdbcType=INTEGER},
+            </if>
+            <if test="exittime != null" >
+                ExitTime = #{exittime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="operationid != null" >
+                operationid = #{operationid,jdbcType=INTEGER},
+            </if>
+            <if test="operationtime != null" >
+                operationtime = #{operationtime,jdbcType=TIMESTAMP},
+            </if>
+        </set>
+        where user_circle_recordId = #{userCircleRecordid,jdbcType=INTEGER}
+    </update>
+
+    <update id="updateByPrimaryKey" parameterType="com.luke.model.UserCircleRecord" >
+        update user_circle_record
+        set unionId = #{unionid,jdbcType=VARCHAR},
+            circleId = #{circleid,jdbcType=INTEGER},
+            ExitTime = #{exittime,jdbcType=TIMESTAMP},
+            operationid = #{operationid,jdbcType=INTEGER},
+            operationtime = #{operationtime,jdbcType=TIMESTAMP}
+        where user_circle_recordId = #{userCircleRecordid,jdbcType=INTEGER}
+    </update>
+</mapper>
